@@ -9,13 +9,16 @@ public class Scenario {
 	private final int numElevatorCars;
 	private final List<FloorBuilder> floors;
 	
+	private final ElevatorCarConfiguration elevatorCarConfiguration;
+	
 	/**
 	 * Creates a new scenario
 	 * @param numElevatorCars The number of elevator cars
 	 * @param floors The floors
 	 */
-	public Scenario(int numElevatorCars, List<FloorBuilder> floors) {
+	public Scenario(int numElevatorCars, ElevatorCarConfiguration elevatorCarConfiguration, List<FloorBuilder> floors) {
 		this.numElevatorCars = numElevatorCars;
+		this.elevatorCarConfiguration = elevatorCarConfiguration;
 		this.floors = floors;
 	}
 	
@@ -64,6 +67,6 @@ public class Scenario {
 			floors[i] = new Floor(i, floor.numResidents, floor.averageArrivalRate);
 		}
 		
-		return new Building(floors, this.numElevatorCars, 0);
+		return new Building(floors, this.numElevatorCars, 0, this.elevatorCarConfiguration);
 	}
 }

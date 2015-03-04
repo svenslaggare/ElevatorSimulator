@@ -12,13 +12,18 @@ public class Building {
 	 * @param floors The floors
 	 * @param numElevatorCars The number of elevator cars
 	 * @param startFloor The start floor for the elevator cars
+	 * @param elevatorCarConfiguration The configuration for the elevator cars
 	 */
-	public Building(Floor[] floors, int numElevatorCars, int startFloor) {
+	public Building(Floor[] floors, int numElevatorCars, int startFloor, ElevatorCarConfiguration elevatorCarConfiguration) {
+		if (floors.length < 2) {
+			throw new IllegalArgumentException("The number of floors in the building must be >= 2.");
+		}
+		
 		this.floors = floors;
 		
 		this.elevatorCars = new ElevatorCar[numElevatorCars];
 		for (int i = 0; i < this.elevatorCars.length; i++) {
-			this.elevatorCars[i] = new ElevatorCar(startFloor);
+			this.elevatorCars[i] = new ElevatorCar(i, startFloor, elevatorCarConfiguration);
 		}
 	}
 	
@@ -51,7 +56,7 @@ public class Building {
 	 */
 	public void update(Simulator simulator, long duration) {
 		for (int i = 0; i < this.floors.length; i++) {
-			this.floors[i].tryGenerateNewArrival(simulator, duration);
+			this.floors[i].update(simulator, duration);
 		}
 		
 		for (int i = 0; i < this.elevatorCars.length; i++) {

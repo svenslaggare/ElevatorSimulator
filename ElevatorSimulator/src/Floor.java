@@ -12,7 +12,6 @@ public class Floor {
 	private final double averageArrivalRate;
 	private final Queue<Passenger> waitingQueue;
 	
-	//private final PoissonDistribution random;
 	private long timeLeft = 0;
 	private boolean isFirst = true;
 	
@@ -27,8 +26,6 @@ public class Floor {
 		this.numResidents = numResidents;
 		this.averageArrivalRate = averageArrivalRate;
 		this.waitingQueue = new LinkedList<Passenger>();
-		
-		//this.random = new PoissonDistribution(this.averageArrivalRate);
 	}
 	
 	/**
@@ -60,20 +57,81 @@ public class Floor {
 		return waitingQueue;
 	}
 	
-	/**
-	 * Indicates if a passenger arrived
-	 * @param simulator The simulator
-	 * @param duration The elapsed time since the last time step
-	 */
-//	private boolean passengerArrived(Simulator simulator, long duration) {
-//		//double p = (duration * SimulatorClock.TIME_SCALE) * this.averageArrivalRate;
-//		//return simulator.getRandom().nextDouble() <= p;
-//		return simulator.getRandom().nextDouble() <= this.random.cumulativeProbability((int)(this.timeSinceLastArrival * SimulatorClock.TIME_SCALE));
-//	}
-	
 	private void generateNextArrival(Simulator simulator) {
 		double nextTime = (-Math.log(1.0 - simulator.getRandom().nextDouble()) * (this.averageArrivalRate));
 		this.timeLeft = (long)(nextTime / SimulatorClock.TIME_SCALE);
+	}
+	
+	/**
+	 * Generates a random destination floor
+	 * @param simulator The simulator
+	 */
+	private int generateRandomDestination(Simulator simulator) {
+		while (true) {
+			int randFloor = simulator.getRandom().nextInt(simulator.getBuilding().numFloors());
+			
+			if (randFloor != this.floorNumber) {
+				return randFloor;
+			}
+		}
+	}
+	
+	/**
+	 * Updates the floor
+	 * @param simulator The simulator
+	 * @param duration The elapsed time since the last time step
+	 */
+	public void update(Simulator simulator, long duration) {
+		if (!this.waitingQueue.isEmpty()) {
+			for (Passenger passenger : new LinkedList<Passenger>(this.waitingQueue)) {
+				for (ElevatorCar elevator : simulator.getBuilding().getElevatorCars()) {
+					boolean canPickup = false;
+					
+					Direction dir = Direction.getDirection(this.floorNumber, passenger.getDestinationFloor());
+					
+					if (elevator.getDirection() == Direction.NONE && this.floorNumber == elevator.getFloor()) {
+						canPickup = true;
+					}
+					
+					if (dir == elevator.getDirection()) {
+						if (elevator.getDirection() == Direction.UP) {
+							if (elevator.isTraveling()) {
+								canPickup = elevator.getFloor() < this.floorNumber;
+							} else {
+								canPickup = this.floorNumber == elevator.getFloor();
+							}
+						} else {
+							if (elevator.isTraveling()) {
+								canPickup = elevator.getFloor() > this.floorNumber;
+							} else {
+								canPickup = this.floorNumber == elevator.getFloor();
+							}
+						}
+					}
+					
+					if (canPickup) {
+						simulator.elevatorLog(elevator.getId(), "Picked up passenger #" + passenger.getId() + " at floor "
+							+ this.floorNumber + " with the destination of "
+							+ passenger.getDestinationFloor() + ".");
+						
+						elevator.setDirection(dir);
+						elevator.pickUp(passenger);
+						this.waitingQueue.remove(passenger);
+						elevator.beginStopTime(simulator.getClock());
+						break;
+					}
+				}
+			}
+		}
+		
+		for (ElevatorCar elevator : simulator.getBuilding().getElevatorCars()) {
+			if (elevator.hasStopTimeStarted() && elevator.stopTimePassed(simulator.getClock())) {
+				simulator.elevatorLog(elevator.getId(), "Stop time passed.");
+				elevator.endStopTime(simulator.getClock());
+			}
+		}
+		
+		this.tryGenerateNewArrival(simulator, duration);
 	}
 	
 	/**
@@ -83,26 +141,6 @@ public class Floor {
 	 * @return True if generated
 	 */
 	public boolean tryGenerateNewArrival(Simulator simulator, long duration) {
-//		this.timeSinceLastArrival += duration;
-//		
-//		if (this.passengerArrived(simulator, duration)) {
-//			Passenger newPassenger = new Passenger(
-//					simulator.getRandom().nextInt(simulator.getBuilding().numFloors()),
-//					simulator.getClock());
-//			
-//			this.waitingQueue.add(newPassenger);
-//			
-//			simulator.log(
-//					"Generated a new passenger at floor "
-//					+ this.floorNumber + " with the destination: "
-//					+ newPassenger.getDestinationFloor() + ".");
-//			
-//			simulator.arrivalGenerated(this.floorNumber);
-//			
-//			this.timeSinceLastArrival = 0;
-//			return true;
-//		}
-		
 		if (this.isFirst) {
 			this.generateNextArrival(simulator);
 			this.isFirst = false;
@@ -112,11 +150,17 @@ public class Floor {
 		this.timeLeft -= duration;
 		
 		if (this.timeLeft <= 0) {
-			Passenger newPassenger = new Passenger(
-					simulator.getRandom().nextInt(simulator.getBuilding().numFloors()),
-					simulator.getClock());
+			int randFloor = generateRandomDestination(simulator);
 			
-			this.waitingQueue.add(newPassenger);
+			this.waitingQueue.add(new Passenger(
+				simulator.nextPassengerId(),
+				randFloor,
+				simulator.getClock()));
+			
+//			this.waitingQueue.add(new Passenger(
+//				simulator.nextPassengerId(),
+//				randFloor,
+//				simulator.getClock()));
 			
 //			simulator.log(
 //					"Generated a new passenger at floor "

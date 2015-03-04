@@ -6,5 +6,22 @@
 public enum Direction {
 	NONE,
 	UP,
-	DOWN
+	DOWN;
+	
+	/**
+	 * Returns the direction between the given floors
+	 * @param currentFloor The current floor
+	 * @param destinationFloor The destination floor
+	 */
+	public static Direction getDirection(int currentFloor, int destinationFloor) {
+		int dir = destinationFloor - currentFloor;
+		
+		if (dir < 0) {
+			return DOWN;
+		} else if (dir > 0) {
+			return UP;
+		} else {
+			return NONE;
+		}
+	}
 }

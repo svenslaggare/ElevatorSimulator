@@ -10,7 +10,7 @@ public class SimulatorClock {
 	 * Returns the current now
 	 */
 	public long timeNow() {
-		return System.currentTimeMillis();
+		return System.nanoTime();
 	}
 	
 	/**
@@ -19,5 +19,21 @@ public class SimulatorClock {
 	 */
 	public long durationFromRealTime(long durationRealTime) {
 		return durationRealTime;
+	}
+	
+	/**
+	 * Returns the time returned by the 'timeNow' method in seconds
+	 * @param time The time in the clock
+	 */
+	public long asSecond(long time) {
+		return (long)(time * TIME_SCALE);
+	}
+	
+	/**
+	 * Returns the given amount of seconds in the clocks time
+	 * @param time The number of seconds
+	 */
+	public long secondsToTime(double time) {
+		return (long)(time / TIME_SCALE);
 	}
 }

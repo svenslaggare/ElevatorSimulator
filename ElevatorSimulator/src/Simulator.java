@@ -15,17 +15,19 @@ public class Simulator {
 	
 	private final int[] generatedArrivals;
 	
+	private long passengerId = 0;
+	
 	/**
 	 * Creates a new simulator
 	 */
 	public Simulator() {
 		List<Scenario.FloorBuilder> floors = new ArrayList<Scenario.FloorBuilder>();
-		floors.add(new Scenario.FloorBuilder(300, 5));
-		floors.add(new Scenario.FloorBuilder(50, 2));
-		floors.add(new Scenario.FloorBuilder(30, 3));
-		floors.add(new Scenario.FloorBuilder(60, 1));
+		floors.add(new Scenario.FloorBuilder(300, 2));
+		floors.add(new Scenario.FloorBuilder(50, 100000000));
+		floors.add(new Scenario.FloorBuilder(30, 100000000));
+		floors.add(new Scenario.FloorBuilder(60, 100000000));
 		
-		this.building = new Scenario(3, floors).createBuilding();
+		this.building = new Scenario(3, new ElevatorCarConfiguration(8, 1.5, 2), floors).createBuilding();
 		this.generatedArrivals = new int[floors.size()];
 	}
 	
@@ -64,6 +66,15 @@ public class Simulator {
 	 */
 	public void log(String line) {
 		System.out.println(new Date().toString() + ": " + line);
+	}
+	
+	/**
+	 * Logs the given line for an elevator
+	 * @param elevatorId The id of the elevator
+	 * @param line The line
+	 */
+	public void elevatorLog(int elevatorId, String line) {
+		this.log("Elevator " + elevatorId + ": " + line);
 	}
 	
 	/**
@@ -112,5 +123,12 @@ public class Simulator {
 		
 		System.out.println("-----STATS----");
 		simulator.printStats();		
+	}
+	
+	/**
+	 * Returns the next passenger id
+	 */
+	public long nextPassengerId() {
+		return this.passengerId++;
 	}
 }
