@@ -1,3 +1,4 @@
+package elevatorsimulator;
 /**
  * Represents a configuration for an elevator car
  * @author Anton Jansson
@@ -7,17 +8,22 @@ public class ElevatorCarConfiguration {
 	private final int capacity;
 	private final double floorTime;
 	private final double stopTime;
+	private final double startTime;
+	private final double doorTime;
 	
 	/**
 	 * Creates a new elevator car configuration
 	 * @param capacity The capacity
 	 * @param floorTime The floor time
 	 * @param stopTime The stop time
+	 * @param doorTime The door time
 	 */
-	public ElevatorCarConfiguration(int capacity, double floorTime, double stopTime) {
+	public ElevatorCarConfiguration(int capacity, double floorTime, double stopTime, double startTime, double doorTime) {
 		this.capacity = capacity;
 		this.floorTime = floorTime;
 		this.stopTime = stopTime;
+		this.startTime = startTime;
+		this.doorTime = doorTime;
 	}
 	
 	/**
@@ -39,5 +45,19 @@ public class ElevatorCarConfiguration {
 	 */
 	public double getStopTime() {
 		return stopTime;
+	}
+	
+	/**
+	 * Returns the start time
+	 */
+	public double getStartTime() {
+		return startTime;
+	}
+	
+	/**
+	 * Returns the door time
+	 */
+	public double getDoorTime() {
+		return doorTime;
 	}
 }

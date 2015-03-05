@@ -1,3 +1,4 @@
+package elevatorsimulator;
 /**
  * Represents the possible movement directions of an elevator car
  * @author Anton Jansson

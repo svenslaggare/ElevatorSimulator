@@ -1,7 +1,6 @@
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
+package elevatorsimulator;
+import java.util.*;
+
 
 /**
  * The main class for the simulator
@@ -11,24 +10,26 @@ import java.util.Random;
 public class Simulator {
 	private final SimulatorClock clock = new SimulatorClock();
 	private final Random random = new Random();
+	private final SimulatorStats stats;
+	
 	private final Building building;
+	private final ControlSystem controlSystem;
 	
 	private final int[] generatedArrivals;
 	
 	private long passengerId = 0;
 	
+	private final boolean debugMode = false;
+	
 	/**
 	 * Creates a new simulator
+	 * @param scenario The scenario
 	 */
-	public Simulator() {
-		List<Scenario.FloorBuilder> floors = new ArrayList<Scenario.FloorBuilder>();
-		floors.add(new Scenario.FloorBuilder(300, 2));
-		floors.add(new Scenario.FloorBuilder(50, 100000000));
-		floors.add(new Scenario.FloorBuilder(30, 100000000));
-		floors.add(new Scenario.FloorBuilder(60, 100000000));
-		
-		this.building = new Scenario(3, new ElevatorCarConfiguration(8, 1.5, 2), floors).createBuilding();
-		this.generatedArrivals = new int[floors.size()];
+	public Simulator(Scenario scenario) {		
+		this.stats = new SimulatorStats(this.clock);
+		this.building = scenario.createBuilding();
+		this.controlSystem = new ControlSystem(this.building);
+		this.generatedArrivals = new int[this.building.getFloors().length];
 	}
 	
 	/**
@@ -36,6 +37,13 @@ public class Simulator {
 	 */
 	public SimulatorClock getClock() {
 		return clock;
+	}
+	
+	/**
+	 * Returns the simulator statistics
+	 */
+	public SimulatorStats getStats() {
+		return stats;
 	}
 	
 	/**
@@ -53,11 +61,19 @@ public class Simulator {
 	}
 	
 	/**
+	 * Returns the control system
+	 */
+	public ControlSystem getControlSystem() {
+		return controlSystem;
+	}
+	
+	/**
 	 * Moves the simulation forward one time step
 	 * @param duration The elapsed time since the last time step
 	 */
 	public void moveForward(long duration) {
 		this.building.update(this, duration);
+		this.controlSystem.update(this, duration);
 	}
 	
 	/**
@@ -65,7 +81,7 @@ public class Simulator {
 	 * @param line The line
 	 */
 	public void log(String line) {
-		System.out.println(new Date().toString() + ": " + line);
+		//System.out.println(new Date().toString() + ": " + line);
 	}
 	
 	/**
@@ -75,6 +91,17 @@ public class Simulator {
 	 */
 	public void elevatorLog(int elevatorId, String line) {
 		this.log("Elevator " + elevatorId + ": " + line);
+	}
+	
+	/**
+	 * Logs the given debug line for an elevator
+	 * @param elevatorId The id of the elevator
+	 * @param line The line
+	 */
+	public void elevatorDebugLog(int elevatorId, String line) {
+		if (this.debugMode) {
+			this.elevatorLog(elevatorId, line);
+		}
 	}
 	
 	/**
@@ -110,9 +137,16 @@ public class Simulator {
 	}
 	
 	public static void main(String[] args) {
-		long simulationTime = 10 * 1000;
+		long simulationTime = 30 * 1000;
 		long startTime = System.currentTimeMillis();
-		Simulator simulator = new Simulator();
+		
+		List<Scenario.FloorBuilder> floors = new ArrayList<Scenario.FloorBuilder>();
+		floors.add(new Scenario.FloorBuilder(300, 2));
+		floors.add(new Scenario.FloorBuilder(50, 2*10000));
+		floors.add(new Scenario.FloorBuilder(30, 3*10000));
+		floors.add(new Scenario.FloorBuilder(60, 2*10000));
+		
+		Simulator simulator = new Simulator(new Scenario(3, new ElevatorCarConfiguration(8, 1.5, 2.6, 2.6, 1), floors));
 		long prevStep = System.nanoTime();
 		
 		while ((System.currentTimeMillis() - startTime) < simulationTime) {
@@ -121,8 +155,10 @@ public class Simulator {
 			prevStep = timeNowNano;
 		}
 		
-		System.out.println("-----STATS----");
-		simulator.printStats();		
+		simulator.log("Simulation finished.");
+		System.out.println("--------------------STATS--------------------");
+		simulator.stats.printStats();
+		//simulator.printStats();		
 	}
 	
 	/**

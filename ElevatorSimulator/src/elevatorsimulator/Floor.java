@@ -1,3 +1,4 @@
+package elevatorsimulator;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -15,6 +16,8 @@ public class Floor {
 	private long timeLeft = 0;
 	private boolean isFirst = true;
 	
+//	private long lastIntervalStart = 0;
+		
 	/**
 	 * Creates a new floor
 	 * @param floorNumber The floor number
@@ -58,8 +61,9 @@ public class Floor {
 	}
 	
 	private void generateNextArrival(Simulator simulator) {
-		double nextTime = (-Math.log(1.0 - simulator.getRandom().nextDouble()) * (this.averageArrivalRate));
-		this.timeLeft = (long)(nextTime / SimulatorClock.TIME_SCALE);
+//		double nextTime = (-Math.log(1.0 - simulator.getRandom().nextDouble()) * (this.averageArrivalRate));
+//		this.timeLeft = simulator.getClock().secondsToTime(nextTime);
+		this.timeLeft = simulator.getClock().secondsToTime(this.averageArrivalRate);
 	}
 	
 	/**
@@ -77,6 +81,16 @@ public class Floor {
 	}
 	
 	/**
+	 * Marks that the given hall call has been handled
+	 * @param simulator The simulator
+	 * @param passenger The passenger
+	 */
+	private void hallCallHandled(Simulator simulator, Passenger passenger) {
+		this.waitingQueue.remove(passenger);
+		simulator.getControlSystem().hallCallHandled(passenger);
+	}
+	
+	/**
 	 * Updates the floor
 	 * @param simulator The simulator
 	 * @param duration The elapsed time since the last time step
@@ -85,6 +99,11 @@ public class Floor {
 		if (!this.waitingQueue.isEmpty()) {
 			for (Passenger passenger : new LinkedList<Passenger>(this.waitingQueue)) {
 				for (ElevatorCar elevator : simulator.getBuilding().getElevatorCars()) {
+					//Check if the elevator has capacity
+					if (!elevator.canPickupPassenger(passenger)) {
+						continue;
+					}
+					
 					boolean canPickup = false;
 					
 					Direction dir = Direction.getDirection(this.floorNumber, passenger.getDestinationFloor());
@@ -113,23 +132,25 @@ public class Floor {
 						simulator.elevatorLog(elevator.getId(), "Picked up passenger #" + passenger.getId() + " at floor "
 							+ this.floorNumber + " with the destination of "
 							+ passenger.getDestinationFloor() + ".");
-						
+							
 						elevator.setDirection(dir);
-						elevator.pickUp(passenger);
-						this.waitingQueue.remove(passenger);
-						elevator.beginStopTime(simulator.getClock());
+						elevator.pickUp(simulator.getClock(), passenger);
+						this.hallCallHandled(simulator, passenger);
+//						elevator.beginStopTime(simulator);
 						break;
 					}
 				}
 			}
 		}
 		
-		for (ElevatorCar elevator : simulator.getBuilding().getElevatorCars()) {
-			if (elevator.hasStopTimeStarted() && elevator.stopTimePassed(simulator.getClock())) {
-				simulator.elevatorLog(elevator.getId(), "Stop time passed.");
-				elevator.endStopTime(simulator.getClock());
-			}
-		}
+//		SimulatorClock clock = simulator.getClock();
+//		long timeNow = clock.timeNow();
+//		long intervallTime = clock.secondsToTime(2);
+//		
+//		if (clock.durationFromRealTime(timeNow - this.lastIntervalStart) >= intervallTime) {
+//			System.out.println("Intervall: " + clock.timeNow() / intervallTime);
+//			this.lastIntervalStart = timeNow;
+//		}
 		
 		this.tryGenerateNewArrival(simulator, duration);
 	}
@@ -152,15 +173,15 @@ public class Floor {
 		if (this.timeLeft <= 0) {
 			int randFloor = generateRandomDestination(simulator);
 			
-			this.waitingQueue.add(new Passenger(
+			Passenger newPassenger = new Passenger(
 				simulator.nextPassengerId(),
+				this.floorNumber,
 				randFloor,
-				simulator.getClock()));
+				1,
+				simulator.getClock());
 			
-//			this.waitingQueue.add(new Passenger(
-//				simulator.nextPassengerId(),
-//				randFloor,
-//				simulator.getClock()));
+			this.waitingQueue.add(newPassenger);		
+			simulator.getControlSystem().handleHallCall(newPassenger);
 			
 //			simulator.log(
 //					"Generated a new passenger at floor "

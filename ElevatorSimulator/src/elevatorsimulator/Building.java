@@ -1,3 +1,4 @@
+package elevatorsimulator;
 /**
  * Represents a building
  * @author Anton Jansson
@@ -6,6 +7,11 @@
 public class Building {
 	private final Floor[] floors;
 	private final ElevatorCar[] elevatorCars;
+	
+	/**
+	 * The lobby floor
+	 */
+	public static final int LOBBY = 0;
 	
 	/**
 	 * Creates a new building
@@ -47,6 +53,19 @@ public class Building {
 	 */
 	public ElevatorCar[] getElevatorCars() {
 		return elevatorCars;
+	}
+	
+	/**
+	 * Returns the total number of residents
+	 */
+	public int getTotalNumberOfResidents() {
+		int total = 0;
+		
+		for (Floor floor : this.floors) {
+			total += floor.getNumResidents();
+		}
+		
+		return total;
 	}
 	
 	/**
