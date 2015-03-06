@@ -5,10 +5,9 @@ import org.junit.Test;
 
 import elevatorsimulator.SimulatorClock;
 import elevatorsimulator.TrafficProfile;
-import elevatorsimulator.TrafficProfile.Interval;
 
 /**
- * Unit test for testing the TrafficProfile class
+ * Unit test for the TrafficProfile class
  * @author Anton Jansson
  *
  */

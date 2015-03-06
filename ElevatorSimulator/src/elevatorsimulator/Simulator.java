@@ -81,7 +81,7 @@ public class Simulator {
 	 * @param line The line
 	 */
 	public void log(String line) {
-		//System.out.println(new Date().toString() + ": " + line);
+		System.out.println(new Date().toString() + ": " + line);
 	}
 	
 	/**
@@ -146,7 +146,7 @@ public class Simulator {
 		floors.add(new Scenario.FloorBuilder(30, 3*10000));
 		floors.add(new Scenario.FloorBuilder(60, 2*10000));
 		
-		Simulator simulator = new Simulator(new Scenario(3, new ElevatorCarConfiguration(8, 1.5, 2.6, 2.6, 1), floors));
+		Simulator simulator = new Simulator(new Scenario(1, new ElevatorCarConfiguration(8, 1.5, 2.6, 2.6, 1), floors));
 		long prevStep = System.nanoTime();
 		
 		while ((System.currentTimeMillis() - startTime) < simulationTime) {

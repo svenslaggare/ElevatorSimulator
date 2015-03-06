@@ -23,7 +23,7 @@ public class ElevatorCar {
 	
 	private long lastMovement;
 		
-	private boolean hasStopped;
+	private boolean hasStopped = true;
 	
 	private boolean beginStop;
 	private long stopStartTime;
@@ -136,6 +136,7 @@ public class ElevatorCar {
 	 * @param simulator The simulator
 	 */
 	public void startElevator(Simulator simulator) {
+		simulator.elevatorLog(this.id, "Start moving elevator.");
 		this.hasStopped = false;
 		this.beginStart = true;
 		this.startStartTime = simulator.getClock().timeNow();
@@ -186,6 +187,13 @@ public class ElevatorCar {
 				this.intervalEnterStart = timeNow;
 			}
 		}
+		
+		if (this.passengers.size() > 0) {
+			long duration = clock.durationFromRealTime(timeNow - this.intervalEnterStart);
+			if (this.hasStopped && duration >= clock.secondsToTime(this.configuration.getDoorTime())) {
+				this.startElevator(simulator);
+			}
+		}
 	}
 	
 	/**
@@ -204,6 +212,7 @@ public class ElevatorCar {
 	public void pickUp(SimulatorClock clock, Passenger passenger) {
 		passenger.rideStarted(clock);
 		this.passengers.add(passenger);
+		this.intervalEnterStart = clock.timeNow();
 		
 		if (this.direction == Direction.UP) {
 			this.destinationFloor = Math.max(this.destinationFloor, passenger.getDestinationFloor());

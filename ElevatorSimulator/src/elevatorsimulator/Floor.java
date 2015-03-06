@@ -99,45 +99,47 @@ public class Floor {
 		if (!this.waitingQueue.isEmpty()) {
 			for (Passenger passenger : new LinkedList<Passenger>(this.waitingQueue)) {
 				for (ElevatorCar elevator : simulator.getBuilding().getElevatorCars()) {
-					//Check if the elevator has capacity
-					if (!elevator.canPickupPassenger(passenger)) {
-						continue;
-					}
-					
-					boolean canPickup = false;
-					
-					Direction dir = Direction.getDirection(this.floorNumber, passenger.getDestinationFloor());
-					
-					if (elevator.getDirection() == Direction.NONE && this.floorNumber == elevator.getFloor()) {
-						canPickup = true;
-					}
-					
-					if (dir == elevator.getDirection()) {
-						if (elevator.getDirection() == Direction.UP) {
-							if (elevator.isTraveling()) {
-								canPickup = elevator.getFloor() < this.floorNumber;
+					if (elevator.hasStopped()) {
+						//Check if the elevator has capacity
+						if (!elevator.canPickupPassenger(passenger)) {
+							continue;
+						}
+						
+						boolean canPickup = false;
+						
+						Direction dir = Direction.getDirection(this.floorNumber, passenger.getDestinationFloor());
+						
+						if (elevator.getDirection() == Direction.NONE && this.floorNumber == elevator.getFloor()) {
+							canPickup = true;
+						}
+						
+						if (dir == elevator.getDirection()) {
+							if (elevator.getDirection() == Direction.UP) {
+								if (elevator.isTraveling()) {
+									canPickup = elevator.getFloor() < this.floorNumber;
+								} else {
+									canPickup = this.floorNumber == elevator.getFloor();
+								}
 							} else {
-								canPickup = this.floorNumber == elevator.getFloor();
-							}
-						} else {
-							if (elevator.isTraveling()) {
-								canPickup = elevator.getFloor() > this.floorNumber;
-							} else {
-								canPickup = this.floorNumber == elevator.getFloor();
+								if (elevator.isTraveling()) {
+									canPickup = elevator.getFloor() > this.floorNumber;
+								} else {
+									canPickup = this.floorNumber == elevator.getFloor();
+								}
 							}
 						}
-					}
-					
-					if (canPickup) {
-						simulator.elevatorLog(elevator.getId(), "Picked up passenger #" + passenger.getId() + " at floor "
-							+ this.floorNumber + " with the destination of "
-							+ passenger.getDestinationFloor() + ".");
-							
-						elevator.setDirection(dir);
-						elevator.pickUp(simulator.getClock(), passenger);
-						this.hallCallHandled(simulator, passenger);
-//						elevator.beginStopTime(simulator);
-						break;
+						
+						if (canPickup) {
+							simulator.elevatorLog(elevator.getId(), "Picked up passenger #" + passenger.getId() + " at floor "
+								+ this.floorNumber + " with the destination of "
+								+ passenger.getDestinationFloor() + ".");
+								
+							elevator.setDirection(dir);
+							elevator.pickUp(simulator.getClock(), passenger);
+							this.hallCallHandled(simulator, passenger);
+	//						elevator.beginStopTime(simulator);
+							break;
+						}
 					}
 				}
 			}
