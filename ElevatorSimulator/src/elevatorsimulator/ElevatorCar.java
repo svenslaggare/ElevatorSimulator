@@ -240,7 +240,7 @@ public class ElevatorCar {
 				
 				//Check if the doors has closed and the elevator starts moving again
 				long duration = timeNow - this.intervalEnterStart;
-				if (duration >= clock.durationFromRealTime(clock.secondsToTime(this.configuration.getDoorTime()))) {
+				if (clock.durationFromRealTime(duration) >= clock.secondsToTime(this.configuration.getDoorTime())) {
 					this.startElevator(simulator);
 				}
 			}

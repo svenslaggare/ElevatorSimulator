@@ -7,7 +7,7 @@ package elevatorsimulator;
 public class SimulatorClock {
 	public static final double TIME_SCALE = 1e-9;
 	public static final long NANOSECONDS_PER_SECOND = 1000000000;
-	private final double simulationSpeed = 1.0;
+	private final double simulationSpeed = 100.0;
 	
 	private final long simulationStarted;
 	

@@ -143,8 +143,8 @@ public class Simulator {
 		List<Scenario.FloorBuilder> floors = new ArrayList<Scenario.FloorBuilder>();
 		floors.add(new Scenario.FloorBuilder(300, 2));
 		floors.add(new Scenario.FloorBuilder(50, 3));
-		floors.add(new Scenario.FloorBuilder(30, 3*10000));
-		floors.add(new Scenario.FloorBuilder(60, 2*10000));
+		floors.add(new Scenario.FloorBuilder(30, 5));
+		floors.add(new Scenario.FloorBuilder(60, 2));
 		
 		Simulator simulator = new Simulator(new Scenario(1, new ElevatorCarConfiguration(8, 1.5, 2.6, 2.6, 1), floors));
 		long prevStep = System.nanoTime();
