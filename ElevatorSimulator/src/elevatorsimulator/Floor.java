@@ -2,6 +2,8 @@ package elevatorsimulator;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import elevatorsimulator.ElevatorCar.State;
+
 /**
  * Represents a floor in the building
  * @author Anton Jansson
@@ -99,7 +101,7 @@ public class Floor {
 		if (!this.waitingQueue.isEmpty()) {
 			for (Passenger passenger : new LinkedList<Passenger>(this.waitingQueue)) {
 				for (ElevatorCar elevator : simulator.getBuilding().getElevatorCars()) {
-					if (elevator.hasStopped()) {
+					if (elevator.getState() == State.STOPPED || elevator.getState() == State.IDLE) {
 						//Check if the elevator has capacity
 						if (!elevator.canPickupPassenger(passenger)) {
 							continue;
@@ -109,25 +111,27 @@ public class Floor {
 						
 						Direction dir = Direction.getDirection(this.floorNumber, passenger.getDestinationFloor());
 						
-						if (elevator.getDirection() == Direction.NONE && this.floorNumber == elevator.getFloor()) {
-							canPickup = true;
+						if (this.floorNumber == elevator.getFloor()) {
+							canPickup = 
+								elevator.getDirection() == Direction.NONE
+								|| elevator.getDirection() == dir;
 						}
 						
-						if (dir == elevator.getDirection()) {
-							if (elevator.getDirection() == Direction.UP) {
-								if (elevator.isTraveling()) {
-									canPickup = elevator.getFloor() < this.floorNumber;
-								} else {
-									canPickup = this.floorNumber == elevator.getFloor();
-								}
-							} else {
-								if (elevator.isTraveling()) {
-									canPickup = elevator.getFloor() > this.floorNumber;
-								} else {
-									canPickup = this.floorNumber == elevator.getFloor();
-								}
-							}
-						}
+//						if (dir == elevator.getDirection()) {
+//							if (elevator.getDirection() == Direction.UP) {
+//								if (elevator.isTraveling()) {
+//									canPickup = elevator.getFloor() < this.floorNumber;
+//								} else {
+//									canPickup = this.floorNumber == elevator.getFloor();
+//								}
+//							} else {
+//								if (elevator.isTraveling()) {
+//									canPickup = elevator.getFloor() > this.floorNumber;
+//								} else {
+//									canPickup = this.floorNumber == elevator.getFloor();
+//								}
+//							}
+//						}
 						
 						if (canPickup) {
 							simulator.elevatorLog(elevator.getId(), "Picked up passenger #" + passenger.getId() + " at floor "
@@ -135,9 +139,8 @@ public class Floor {
 								+ passenger.getDestinationFloor() + ".");
 								
 							elevator.setDirection(dir);
-							elevator.pickUp(simulator.getClock(), passenger);
+							elevator.pickUp(simulator, passenger);
 							this.hallCallHandled(simulator, passenger);
-	//						elevator.beginStopTime(simulator);
 							break;
 						}
 					}

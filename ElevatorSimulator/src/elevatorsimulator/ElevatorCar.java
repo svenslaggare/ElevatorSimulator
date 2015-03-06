@@ -13,24 +13,30 @@ public class ElevatorCar {
 	
 	private int floor;
 	private Direction direction;
-
-	private boolean traveling = false;
 	private int destinationFloor;
 	
 	private final List<Passenger> passengers;
 	
 	private final ElevatorCarConfiguration configuration;
 	
-	private long lastMovement;
-		
-	private boolean hasStopped = true;
+	/**
+	 * The possible states the elevator can be in
+	 * @author Anton Jansson
+	 *
+	 */
+	public static enum State {
+		IDLE,
+		MOVING,
+		SLOWING_DOWN,
+		STOPPED,
+		ACCELERATING
+	}
 	
-	private boolean beginStop;
+	private State state = State.IDLE;
+	private boolean stopAtNext = false;
+	private long lastMovement;			
 	private long stopStartTime;
-	
-	private boolean beginStart;
 	private long startStartTime;
-	
 	private long intervalEnterStart;
 	
 	/**
@@ -77,10 +83,10 @@ public class ElevatorCar {
 	}
 	
 	/**
-	 * Indicates if the elevator car is traveling between floors
+	 * Returns the state of the elevator
 	 */
-	public boolean isTraveling() {
-		return traveling;
+	public State getState() {
+		return this.state;
 	}
 	
 	/**
@@ -96,22 +102,22 @@ public class ElevatorCar {
 	public List<Passenger> getPassengers() {
 		return passengers;
 	}
-	
-	/**
-	 * Indicates if the elevator has stopped
-	 */
-	public boolean hasStopped() {
-		return this.hasStopped;
-	}
-	
+
 	/**
 	 * Stops the elevator
 	 * @param simulator The simulator
 	 */
 	public void stopElevator(Simulator simulator) {
-		simulator.elevatorDebugLog(id, "Start stop.");
+		simulator.elevatorDebugLog(id, "Starts to slow down.");
 		this.stopStartTime = simulator.getClock().timeNow();
-		this.beginStop = true;
+		this.state = State.SLOWING_DOWN;
+	}
+	
+	/**
+	 * Stops the elevator at the next floor
+	 */
+	public void stopElevatorAtNextFloor() {
+		this.stopAtNext = true;
 	}
 	
 	/**
@@ -123,8 +129,6 @@ public class ElevatorCar {
 		
 		double stopTime = this.configuration.getStopTime() + this.configuration.getDoorTime();
 		if (clock.elapsedSinceRealTime(this.stopStartTime) >= clock.secondsToTime(stopTime)) {
-			this.beginStop = false;
-			this.hasStopped = true;
 			return true;
 		} else {
 			return false;
@@ -136,10 +140,32 @@ public class ElevatorCar {
 	 * @param simulator The simulator
 	 */
 	public void startElevator(Simulator simulator) {
-		simulator.elevatorLog(this.id, "Start moving elevator.");
-		this.hasStopped = false;
-		this.beginStart = true;
+		simulator.elevatorDebugLog(this.id, "Starts accelerating the elevator.");
 		this.startStartTime = simulator.getClock().timeNow();
+		this.state = State.ACCELERATING;
+	}
+	
+	/**
+	 * Indicates if the elevator has started
+	 * @param simulator The simulator
+	 */
+	public boolean hasStarted(Simulator simulator) {
+		SimulatorClock clock = simulator.getClock();
+		
+		if (clock.elapsedSinceRealTime(this.startStartTime) >= clock.secondsToTime(this.configuration.getStartTime())) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	/**
+	 * Begins the door time
+	 * @param simulator The simulator
+	 */
+	private void beginDoorTime(Simulator simulator) {
+		simulator.elevatorDebugLog(this.id, "Starts closing doors.");
+		this.intervalEnterStart = simulator.getClock().timeNow();
 	}
 	
 	/**
@@ -150,49 +176,94 @@ public class ElevatorCar {
 		long timeNow = simulator.getClock().timeNow();
 		SimulatorClock clock = simulator.getClock();
 		
-		if (this.direction != Direction.NONE) {
-			long duration = clock.durationFromRealTime(timeNow - this.lastMovement);
-			
-			if (duration >= clock.secondsToTime(this.configuration.getFloorTime())) {				
-				if (this.direction == Direction.UP) {
-					this.floor++;
-				} else if (this.direction == Direction.DOWN) {
-					this.floor--;
-				}
-								
-				//Check if any passenger wants to go off
-				for (Passenger passenger : new LinkedList<Passenger>(this.passengers)) {
-					if (this.floor == passenger.getDestinationFloor()) {
-						simulator.elevatorLog(this.id, "Passenger #" + passenger.getId() + " exited at floor " + this.floor + ".");
-						simulator.log("Passenger #" + passenger.getId() + " stats: " + passenger.getStats(simulator.getClock()));
-						simulator.getStats().passengerExited(passenger);
-						this.passengers.remove(passenger);
+		switch (this.state) {
+		case MOVING:
+			{
+				//Check if the elevator has moved to the next floor
+				long duration = clock.durationFromRealTime(timeNow - this.lastMovement);
+				if (duration >= clock.secondsToTime(this.configuration.getFloorTime())) {		
+					if (this.direction == Direction.UP) {
+						this.floor++;
+					} else if (this.direction == Direction.DOWN) {
+						this.floor--;
 					}
-				}
-				
-				if (this.passengers.size() == 0) {
+					
+					this.lastMovement = timeNow;
+					
+					//Check if to stop
+					if (this.stopAtNext) {
+						this.stopElevator(simulator);
+						this.stopAtNext = false;
+					}
+					
+					//Check if any passenger wants to go off
+					for (Passenger passenger : new LinkedList<Passenger>(this.passengers)) {
+						if (this.floor == passenger.getDestinationFloor()) {
+							this.stopElevator(simulator);
+							return;
+						}
+					}
+					
 					//If the destination floor has been reached, stop.
 					if (this.floor == this.destinationFloor) {
+						this.stopElevator(simulator);
 						simulator.elevatorDebugLog(id, "Terminated movement at floor " + this.floor + ".");
 						this.direction = Direction.NONE;
 					}
 				}
-								
-				this.lastMovement = timeNow;
-				this.traveling = false;
-			}		
-			
-			//Check if the elevator has stopped
-			if (this.beginStop && this.hasStopped(simulator)) {
-				this.intervalEnterStart = timeNow;
 			}
-		}
-		
-		if (this.passengers.size() > 0) {
-			long duration = clock.durationFromRealTime(timeNow - this.intervalEnterStart);
-			if (this.hasStopped && duration >= clock.secondsToTime(this.configuration.getDoorTime())) {
-				this.startElevator(simulator);
+			break;
+		case STOPPED:
+			{
+				//Let of passengers if the current floor is their destination
+				boolean leaved = false;
+				for (Passenger passenger : new LinkedList<Passenger>(this.passengers)) {
+					if (this.floor == passenger.getDestinationFloor()) {
+						simulator.elevatorLog(this.id, "Passenger #" + passenger.getId() + " exited at floor " + this.floor + ".");
+						simulator.log("Passenger #" + passenger.getId() + " stats: " + passenger.getStats(simulator.getClock()) + ".");
+						simulator.getStats().passengerExited(passenger);
+						this.passengers.remove(passenger);
+						leaved = true;
+					}
+				}
+				
+				if (this.passengers.size() > 0) {
+					if (leaved) {
+						this.beginDoorTime(simulator);
+					}
+				} else {
+					//If there are no more passengers, the elevator is idle and waits on the floor.
+					this.direction = Direction.NONE;
+					this.state = State.IDLE;
+					return;
+				}
+				
+				//Check if the doors has closed and the elevator starts moving again
+				long duration = timeNow - this.intervalEnterStart;
+				if (duration >= clock.durationFromRealTime(clock.secondsToTime(this.configuration.getDoorTime()))) {
+					this.startElevator(simulator);
+				}
 			}
+			break;
+		case ACCELERATING:
+			{
+				if (this.hasStarted(simulator)) {
+					this.state = State.MOVING;
+					this.lastMovement = timeNow;
+					simulator.elevatorDebugLog(this.id, "Has started.");
+				}
+			}
+			break;
+		case SLOWING_DOWN:
+			{
+				if (this.hasStopped(simulator)) {
+					this.state = State.STOPPED;
+					simulator.elevatorDebugLog(this.id, "Has stopped at floor " + this.floor + ".");
+				}
+			}
+			break;
+			default:
+				break;
 		}
 	}
 	
@@ -206,13 +277,17 @@ public class ElevatorCar {
 	
 	/**
 	 * Pickups a new passenger
-	 * @param clock The simulator clock
+	 * @param simulator The simulator
 	 * @param passenger The passenger to pickup
 	 */
-	public void pickUp(SimulatorClock clock, Passenger passenger) {
-		passenger.rideStarted(clock);
+	public void pickUp(Simulator simulator, Passenger passenger) {
+		if (this.state == State.IDLE) {
+			this.state = State.STOPPED;
+		}
+		
+		passenger.rideStarted(simulator.getClock());
 		this.passengers.add(passenger);
-		this.intervalEnterStart = clock.timeNow();
+		this.beginDoorTime(simulator);
 		
 		if (this.direction == Direction.UP) {
 			this.destinationFloor = Math.max(this.destinationFloor, passenger.getDestinationFloor());
@@ -229,5 +304,6 @@ public class ElevatorCar {
 	public void moveTowards(Simulator simulator, int targetFloor) {
 		this.direction = Direction.getDirection(this.floor, targetFloor);
 		this.destinationFloor = targetFloor;
+		this.startElevator(simulator);
 	}
 }

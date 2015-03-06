@@ -19,7 +19,7 @@ public class Simulator {
 	
 	private long passengerId = 0;
 	
-	private final boolean debugMode = false;
+	private final boolean debugMode = true;
 	
 	/**
 	 * Creates a new simulator
@@ -142,7 +142,7 @@ public class Simulator {
 		
 		List<Scenario.FloorBuilder> floors = new ArrayList<Scenario.FloorBuilder>();
 		floors.add(new Scenario.FloorBuilder(300, 2));
-		floors.add(new Scenario.FloorBuilder(50, 2*10000));
+		floors.add(new Scenario.FloorBuilder(50, 3));
 		floors.add(new Scenario.FloorBuilder(30, 3*10000));
 		floors.add(new Scenario.FloorBuilder(60, 2*10000));
 		

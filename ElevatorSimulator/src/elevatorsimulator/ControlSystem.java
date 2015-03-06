@@ -2,6 +2,8 @@ package elevatorsimulator;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import elevatorsimulator.ElevatorCar.State;
+
 /**
  * Represents the control system for the elevator
  * @author Anton Jansson
@@ -46,19 +48,34 @@ public class ControlSystem {
 				for (ElevatorCar elevator : this.building.getElevatorCars()) {
 					//Dispatch calls
 					if (elevator.getDirection() == Direction.NONE && passenger.getArrivalFloor() != elevator.getFloor()) {
-						elevator.moveTowards(simulator, passenger.getArrivalFloor());
 						simulator.elevatorDebugLog(elevator.getId(), "Movings towards floor " + passenger.getArrivalFloor() + ".");
+						elevator.moveTowards(simulator, passenger.getArrivalFloor());
 						break;
+					}
+					
+					//This implements the 'Collective control algorithm'.
+					if (elevator.getState() == State.MOVING) {
+						Direction dir = Direction.getDirection(passenger.getArrivalFloor(), passenger.getDestinationFloor());
+
+						if (elevator.getDirection() == dir) {
+							boolean correctFloor = false;
+							
+							if (dir == elevator.getDirection()) {
+								if (elevator.getDirection() == Direction.UP) {
+									correctFloor = elevator.getFloor() + 1 == passenger.getArrivalFloor();
+								} else {
+									correctFloor = elevator.getFloor() - 1 == passenger.getArrivalFloor();
+								}
+							}
+														
+							if (correctFloor) {
+								elevator.stopElevatorAtNextFloor();
+								break;
+							}
+						}
 					}
 				}
 			}
-		}
-		
-		for (ElevatorCar elevator : simulator.getBuilding().getElevatorCars()) {
-//			if (elevator.hasStopTimeStarted() && elevator.stopTimePassed(simulator.getClock())) {
-//				simulator.elevatorDebugLog(elevator.getId(), "Stop time passed.");
-//				elevator.endStopTime(simulator.getClock());
-//			}
 		}
 	}
 }
