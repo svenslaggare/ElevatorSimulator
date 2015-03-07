@@ -47,7 +47,7 @@ public class ControlSystem {
 			for (Passenger passenger : this.hallCallQueue) {
 				for (ElevatorCar elevator : this.building.getElevatorCars()) {
 					//Dispatch calls
-					if (elevator.getDirection() == Direction.NONE && passenger.getArrivalFloor() != elevator.getFloor()) {
+					if (elevator.getState() == State.IDLE && passenger.getArrivalFloor() != elevator.getFloor()) {
 						simulator.elevatorDebugLog(elevator.getId(), "Movings towards floor " + passenger.getArrivalFloor() + ".");
 						elevator.moveTowards(simulator, passenger.getArrivalFloor());
 						break;

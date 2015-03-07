@@ -6,6 +6,7 @@ package elevatorsimulator;
  */
 public class SimulatorStats {
 	private final SimulatorClock clock;
+	private long numGenerated;
 	private long numExists;
 	private long totalWaitTime;
 	private double totalSquaredWaitTime;
@@ -14,6 +15,13 @@ public class SimulatorStats {
 	
 	public SimulatorStats(SimulatorClock clock) {
 		this.clock = clock;
+	}
+	
+	/**
+	 * Marks that a passenger has been generated
+	 */
+	public void generatedPassenger() {
+		this.numGenerated++;
 	}
 	
 	/**
@@ -68,6 +76,7 @@ public class SimulatorStats {
 	 */
 	public void printStats() {
 		System.out.println("Simulated time: " + clock.asSecond(clock.simulatedTime()));
+		System.out.println("Num generated passengers: " + this.numGenerated);
 		System.out.println("Num served passengers: " + this.numExists);
 		System.out.println("Average wait time: " + this.averageWaitTime());
 		System.out.println("Average squared wait time: " + this.averageSquaredWaitTime());

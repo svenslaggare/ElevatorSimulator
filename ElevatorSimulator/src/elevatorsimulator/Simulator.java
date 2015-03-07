@@ -8,7 +8,8 @@ import java.util.*;
  *
  */
 public class Simulator {
-	private final SimulatorClock clock = new SimulatorClock();
+	private final SimulatorSettings settings;
+	private final SimulatorClock clock;
 	private final Random random = new Random();
 	private final SimulatorStats stats;
 	
@@ -19,13 +20,16 @@ public class Simulator {
 	
 	private long passengerId = 0;
 	
+	private final boolean enableLog = false;
 	private final boolean debugMode = true;
 	
 	/**
 	 * Creates a new simulator
 	 * @param scenario The scenario
 	 */
-	public Simulator(Scenario scenario) {		
+	public Simulator(Scenario scenario, SimulatorSettings settings) {
+		this.settings = settings;
+		this.clock = new SimulatorClock(settings.getSimulationSpeed());
 		this.stats = new SimulatorStats(this.clock);
 		this.building = scenario.createBuilding();
 		this.controlSystem = new ControlSystem(this.building);
@@ -81,7 +85,9 @@ public class Simulator {
 	 * @param line The line
 	 */
 	public void log(String line) {
-		System.out.println(new Date().toString() + ": " + line);
+		if (enableLog) {
+			System.out.println(new Date().toString() + ": " + line);
+		}
 	}
 	
 	/**
@@ -109,6 +115,7 @@ public class Simulator {
 	 * @param floor The floor
 	 */
 	public void arrivalGenerated(int floor) {
+		this.stats.generatedPassenger();
 		this.generatedArrivals[floor]++;
 	}
 	
@@ -136,29 +143,44 @@ public class Simulator {
 		}
 	}
 	
-	public static void main(String[] args) {
-		long simulationTime = 30 * 1000;
-		long startTime = System.currentTimeMillis();
+	/**
+	 * Runs the simulation
+	 */
+	public void run() {
+		long simulationTime = this.settings.getSimulationTimeInSec() * 1000;
+		long startTime = System.currentTimeMillis();				
+		long prevStep = clock.timeNow();
 		
-		List<Scenario.FloorBuilder> floors = new ArrayList<Scenario.FloorBuilder>();
-		floors.add(new Scenario.FloorBuilder(300, 2));
-		floors.add(new Scenario.FloorBuilder(50, 3));
-		floors.add(new Scenario.FloorBuilder(30, 5));
-		floors.add(new Scenario.FloorBuilder(60, 2));
-		
-		Simulator simulator = new Simulator(new Scenario(1, new ElevatorCarConfiguration(8, 1.5, 2.6, 2.6, 1), floors));
-		long prevStep = System.nanoTime();
+		System.out.println(new Date() + ": Simulation started.");
 		
 		while ((System.currentTimeMillis() - startTime) < simulationTime) {
 			long timeNowNano = System.nanoTime();
-			simulator.moveForward(simulator.getClock().durationFromRealTime(timeNowNano - prevStep));
+			moveForward(this.clock.durationFromRealTime(timeNowNano - prevStep));
 			prevStep = timeNowNano;
-		}
+		}	
 		
-		simulator.log("Simulation finished.");
+		System.out.println(new Date() + ": Simulation finished.");		
 		System.out.println("--------------------STATS--------------------");
-		simulator.stats.printStats();
-		//simulator.printStats();		
+		this.stats.printStats();		
+	}
+	
+	public static void main(String[] args) {
+		List<Scenario.FloorBuilder> floors = new ArrayList<Scenario.FloorBuilder>();
+		floors.add(new Scenario.FloorBuilder(300, 0.5));
+		floors.add(new Scenario.FloorBuilder(50, 2));
+		floors.add(new Scenario.FloorBuilder(30, 1));
+		floors.add(new Scenario.FloorBuilder(60, 1.5));
+//			
+//		floors.add(new Scenario.FloorBuilder(300, 4));
+//		floors.add(new Scenario.FloorBuilder(50, 3));
+//		floors.add(new Scenario.FloorBuilder(30, 2));
+//		floors.add(new Scenario.FloorBuilder(60, 1));
+				
+		Simulator simulator = new Simulator(
+			new Scenario(1, new ElevatorCarConfiguration(8, 1.5, 2.6, 2.6, 1), floors),
+			new SimulatorSettings(100, 30));
+		
+		simulator.run();
 	}
 	
 	/**

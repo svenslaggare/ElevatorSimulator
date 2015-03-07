@@ -65,7 +65,7 @@ public class Floor {
 	private void generateNextArrival(Simulator simulator) {
 //		double nextTime = (-Math.log(1.0 - simulator.getRandom().nextDouble()) * (this.averageArrivalRate));
 //		this.timeLeft = simulator.getClock().secondsToTime(nextTime);
-		this.timeLeft = simulator.getClock().secondsToTime(this.averageArrivalRate);
+		this.timeLeft = simulator.getClock().minutesToTime(this.averageArrivalRate);
 	}
 	
 	/**
@@ -117,21 +117,6 @@ public class Floor {
 								|| elevator.getDirection() == dir;
 						}
 						
-//						if (dir == elevator.getDirection()) {
-//							if (elevator.getDirection() == Direction.UP) {
-//								if (elevator.isTraveling()) {
-//									canPickup = elevator.getFloor() < this.floorNumber;
-//								} else {
-//									canPickup = this.floorNumber == elevator.getFloor();
-//								}
-//							} else {
-//								if (elevator.isTraveling()) {
-//									canPickup = elevator.getFloor() > this.floorNumber;
-//								} else {
-//									canPickup = this.floorNumber == elevator.getFloor();
-//								}
-//							}
-//						}
 						
 						if (canPickup) {
 							simulator.elevatorLog(elevator.getId(), "Picked up passenger #" + passenger.getId() + " at floor "
@@ -147,16 +132,7 @@ public class Floor {
 				}
 			}
 		}
-		
-//		SimulatorClock clock = simulator.getClock();
-//		long timeNow = clock.timeNow();
-//		long intervallTime = clock.secondsToTime(2);
-//		
-//		if (clock.durationFromRealTime(timeNow - this.lastIntervalStart) >= intervallTime) {
-//			System.out.println("Intervall: " + clock.timeNow() / intervallTime);
-//			this.lastIntervalStart = timeNow;
-//		}
-		
+				
 		this.tryGenerateNewArrival(simulator, duration);
 	}
 	

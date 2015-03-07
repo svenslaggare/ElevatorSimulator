@@ -7,14 +7,15 @@ package elevatorsimulator;
 public class SimulatorClock {
 	public static final double TIME_SCALE = 1e-9;
 	public static final long NANOSECONDS_PER_SECOND = 1000000000;
-	private final double simulationSpeed = 100.0;
+	private final double simulationSpeed;
 	
 	private final long simulationStarted;
 	
 	/**
 	 * Creates a new simulator clock
 	 */
-	public SimulatorClock() {
+	public SimulatorClock(double simulationSpeed) {
+		this.simulationSpeed = simulationSpeed;
 		this.simulationStarted = System.nanoTime();
 	}
 	
@@ -58,9 +59,17 @@ public class SimulatorClock {
 	
 	/**
 	 * Returns the given amount of seconds in the clocks time
+	 * @param seconds The number of seconds
+	 */
+	public long secondsToTime(double seconds) {
+		return (long)(seconds / TIME_SCALE);
+	}
+	
+	/**
+	 * Returns the given amount of minutes in the clocks time
 	 * @param time The number of seconds
 	 */
-	public long secondsToTime(double time) {
-		return (long)(time / TIME_SCALE);
+	public long minutesToTime(double minutes) {
+		return (long)((minutes * 60) / TIME_SCALE);
 	}
 }
