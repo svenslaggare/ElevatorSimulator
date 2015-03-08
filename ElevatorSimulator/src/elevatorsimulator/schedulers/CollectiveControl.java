@@ -34,7 +34,6 @@ public class CollectiveControl implements SchedulingAlgorithm {
 						break;
 					}
 					
-					//This implements the 'Collective control algorithm'.
 					if (elevator.getState() == State.MOVING) {
 						Direction dir = Direction.getDirection(passenger.getArrivalFloor(), passenger.getDestinationFloor());
 	
