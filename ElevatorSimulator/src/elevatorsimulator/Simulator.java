@@ -9,11 +9,13 @@ import java.util.*;
 public class Simulator {
 	private final SimulatorSettings settings;
 	private final SimulatorClock clock;
-	private final Random random = new Random();
+	private final Random random = new Random(1337);
 	private final SimulatorStats stats;
 	
 	private final Building building;
 	private final ControlSystem controlSystem;
+	
+	private long simulationStartTime = System.currentTimeMillis();	
 	
 	private long passengerId = 0;
 	
@@ -28,7 +30,7 @@ public class Simulator {
 		this.settings = settings;
 		this.clock = new SimulatorClock(settings.getSimulationSpeed());
 		this.building = scenario.createBuilding();
-		this.controlSystem = new ControlSystem(this.building);
+		this.controlSystem = new ControlSystem(this);
 		this.stats = new SimulatorStats(this);
 	}
 	
@@ -73,7 +75,7 @@ public class Simulator {
 	 */
 	public void moveForward(long duration) {
 		this.building.update(this, duration);
-		this.controlSystem.update(this, duration);
+		this.controlSystem.update(duration);
 	}
 	
 	/**
@@ -113,21 +115,58 @@ public class Simulator {
 	public void arrivalGenerated(Passenger passenger) {
 		this.stats.generatedPassenger(passenger);
 	}
+	
+	/**
+	 * Indicates if new arrivals can be generated
+	 */
+	public boolean canGenerateArrivals() {
+		return (System.currentTimeMillis() - this.simulationStartTime) < this.settings.getSimulationTimeInSec() * 1000;
+	}
 			
+	/**
+	 * Indicates if all floors are empty
+	 */
+	private boolean floorsEmpty() {
+		for (Floor floor : this.building.getFloors()) {
+			if (!floor.getWaitingQueue().isEmpty()) {
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * Indicates if all the elevator cars are empty
+	 */
+	private boolean elevatorsEmpty() {
+		for (ElevatorCar elevator : this.building.getElevatorCars()) {
+			if (!elevator.getPassengers().isEmpty()) {
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
 	/**
 	 * Runs the simulation
 	 */
 	public void run() {
-		long simulationTime = this.settings.getSimulationTimeInSec() * 1000;
-		long startTime = System.currentTimeMillis();				
 		long prevStep = clock.timeNow();
 		
 		System.out.println(new Date() + ": Simulation started.");
 		
-		while ((System.currentTimeMillis() - startTime) < simulationTime) {
+		while (true) {
 			long timeNowNano = System.nanoTime();
 			moveForward(this.clock.durationFromRealTime(timeNowNano - prevStep));
 			prevStep = timeNowNano;
+			
+			if (!this.canGenerateArrivals()) {
+				if (this.floorsEmpty() && this.elevatorsEmpty()) {
+					break;
+				}
+			}
 		}	
 		
 		System.out.println(new Date() + ": Simulation finished.");		
@@ -138,17 +177,27 @@ public class Simulator {
 	public static void main(String[] args) {
 		List<Scenario.FloorBuilder> floors = new ArrayList<Scenario.FloorBuilder>();
 		floors.add(new Scenario.FloorBuilder(0));
-		floors.add(new Scenario.FloorBuilder(50));
-		floors.add(new Scenario.FloorBuilder(30));
-		floors.add(new Scenario.FloorBuilder(60));
-				
-		TrafficProfile.Interval[] arrivalRates = new TrafficProfile.Interval[2];
-		arrivalRates[0] = new TrafficProfile.Interval(10.0, 0.9, 0.1);
-		arrivalRates[1] = new TrafficProfile.Interval(10.0, 0.2, 0.7);
+		floors.add(new Scenario.FloorBuilder(80));
+		floors.add(new Scenario.FloorBuilder(70));
+		floors.add(new Scenario.FloorBuilder(90));		
+		floors.add(new Scenario.FloorBuilder(80));
+		floors.add(new Scenario.FloorBuilder(115));
+		floors.add(new Scenario.FloorBuilder(120));
+		floors.add(new Scenario.FloorBuilder(90));
+		floors.add(new Scenario.FloorBuilder(80));
+		floors.add(new Scenario.FloorBuilder(50));	
+		
+//		TrafficProfile.Interval[] arrivalRates = new TrafficProfile.Interval[2];
+//		arrivalRates[0] = new TrafficProfile.Interval(20.0, 0.9, 0.1);
+//		arrivalRates[1] = new TrafficProfile.Interval(20.0, 0.2, 0.7);
+		
+		TrafficProfile.Interval[] arrivalRates = new TrafficProfile.Interval[1];
+		//arrivalRates[0] = new TrafficProfile.Interval(0.12, 1.0, 0.0);
+		arrivalRates[0] = new TrafficProfile.Interval(0.12, 0.45, 0.45);
 		
 		Simulator simulator = new Simulator(
 			new Scenario(
-				1,
+				3,
 				new ElevatorCarConfiguration(8, 1.5, 2.6, 2.6, 1),
 				floors,
 				new TrafficProfile(arrivalRates)),

@@ -14,27 +14,27 @@ public class TrafficProfile {
 	 *
 	 */
 	public static class Interval {
-		private final double averageArrivals;
+		private final double averageArrivalRatio;
 		private final double upRate;
 		private final double downRate;
 		
 		/**
 		 * Creates a new interval
-		 * @param averageArrivals The average amount of arrivals in the interval
+		 * @param averageArrivalRatio The average amount of arrivals ratio in the interval
 		 * @param upRate The up rate
 		 * @param downRate The down rate
 		 */
-		public Interval(double averageArrivals, double upRate, double downRate) {
-			this.averageArrivals = averageArrivals;
+		public Interval(double averageArrivalRatio, double upRate, double downRate) {
+			this.averageArrivalRatio = averageArrivalRatio;
 			this.upRate = upRate;
 			this.downRate = downRate;
 		}
 
 		/**
-		 * Returns the average amount of arrivals
+		 * Returns the average amount of arrivals ratio
 		 */
-		public double getAverageArrivals() {
-			return averageArrivals;
+		public double getAverageArrivalRatio() {
+			return averageArrivalRatio;
 		}
 		
 		/**
@@ -65,10 +65,14 @@ public class TrafficProfile {
 		 */
 		public double averageNumberOfArrivals(Building building, Floor floor) {
 			if (floor.getFloorNumber() == Building.LOBBY) {
-				return this.averageArrivals * this.upRate;
+				return 
+					building.getTotalNumberOfResidents()
+					* this.averageArrivalRatio
+					* this.upRate;
 			} else {
 				return 
-					this.averageArrivals
+					building.getTotalNumberOfResidents()
+					* this.averageArrivalRatio
 					* (this.getInterfloorRate() + this.getDownRate()) 
 					* (floor.getNumResidents() / (double)building.getTotalNumberOfResidents());
 			}

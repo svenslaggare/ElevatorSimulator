@@ -128,8 +128,8 @@ public class Floor {
 			for (Passenger passenger : new LinkedList<Passenger>(this.waitingQueue)) {
 				for (ElevatorCar elevator : simulator.getBuilding().getElevatorCars()) {
 					if (elevator.getState() == State.STOPPED || elevator.getState() == State.IDLE) {
-						//Check if the elevator has capacity
-						if (!elevator.canPickupPassenger(passenger)) {
+						//Check if the elevator can pickup the passenger
+						if (!elevator.canPickupPassenger(passenger) || !elevator.canBoard(simulator)) {
 							continue;
 						}
 						
@@ -174,7 +174,9 @@ public class Floor {
 			this.generateNextTimeArrival(simulator);
 		}
 				
-		this.tryGenerateNewArrival(simulator, duration);
+		if (simulator.canGenerateArrivals()) {
+			this.tryGenerateNewArrival(simulator, duration);
+		}
 	}
 	
 	/**

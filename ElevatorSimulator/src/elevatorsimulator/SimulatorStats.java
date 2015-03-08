@@ -6,12 +6,16 @@ package elevatorsimulator;
  */
 public class SimulatorStats {
 	private final SimulatorClock clock;
+	private final long numResidents;
 	private long numGenerated;
 	private long numExists;
 	
 	private final int[] passengerFloorArrivals;
 	private final int[] passengerFloorExits;
-	private int numInterfloors;
+	
+	private long numUp;
+	private long numDown;
+	private long numInterfloors;
 	
 	private long totalWaitTime;
 	private double totalSquaredWaitTime;
@@ -25,6 +29,7 @@ public class SimulatorStats {
 	public SimulatorStats(Simulator simulator) {
 		this.clock = simulator.getClock();
 		int numFloors = simulator.getBuilding().getFloors().length;
+		this.numResidents = simulator.getBuilding().getTotalNumberOfResidents();
 		this.passengerFloorArrivals = new int[numFloors];
 		this.passengerFloorExits = new int[numFloors];
 	}
@@ -40,6 +45,14 @@ public class SimulatorStats {
 		
 		if (passenger.getArrivalFloor() != 0 && passenger.getDestinationFloor() != 0) {
 			this.numInterfloors++;
+		}
+		
+		if (passenger.getArrivalFloor() == 0) {
+			this.numUp++;
+		}
+		
+		if (passenger.getDestinationFloor() == 0) {
+			this.numDown++;
 		}
 	}
 	
@@ -94,14 +107,17 @@ public class SimulatorStats {
 	 * Prints the statistics
 	 */
 	public void printStats() {
-		System.out.println("Simulated time: " + clock.asSecond(clock.simulatedTime()));
-		System.out.println("Num generated passengers: " + this.numGenerated);
-		System.out.println("Num served passengers: " + this.numExists);
-		System.out.println("Average wait time: " + this.averageWaitTime());
-		System.out.println("Average squared wait time: " + this.averageSquaredWaitTime());
-		System.out.println("Average ride time: " + this.averageRideTime());
+		System.out.println("Simulated time: " + clock.asSecond(clock.simulatedTime()) + " s");
+		System.out.println("Number of residents: " + this.numResidents);
+		System.out.println("Number generated passengers: " + this.numGenerated);
+		System.out.println("Number served passengers: " + this.numExists);
+		System.out.println("Average wait time: " + this.averageWaitTime() + " s");
+		System.out.println("Average squared wait time: " + this.averageSquaredWaitTime() + " s");
+		System.out.println("Average ride time: " + this.averageRideTime() + " s");
 		System.out.println("Wait times over 60 sec: " + this.percentageOver60s() + "%");
 		
+		System.out.println("Number of up travels: " + this.numUp);
+		System.out.println("Number of down travels: " + this.numDown);
 		System.out.println("Number of interfloor travels: " + this.numInterfloors);
 		
 		System.out.println("----Floor arrivals----");

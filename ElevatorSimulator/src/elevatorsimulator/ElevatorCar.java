@@ -38,6 +38,7 @@ public class ElevatorCar {
 	private long stopStartTime;
 	private long startStartTime;
 	private long intervalEnterStart;
+	private double boardWaitTime = 0.0;
 	
 	/**
 	 * Creates a new elevator
@@ -235,6 +236,7 @@ public class ElevatorCar {
 					//If there are no more passengers, the elevator is idle and waits on the floor.
 					this.direction = Direction.NONE;
 					this.state = State.IDLE;
+					simulator.getControlSystem().elevatorIdle(this);
 					return;
 				}
 				
@@ -276,6 +278,14 @@ public class ElevatorCar {
 	}
 	
 	/**
+	 * Indicates if a passenger can board the elevator
+	 * @param simulator The simulator
+	 */
+	public boolean canBoard(Simulator simulator) {
+		return simulator.getClock().elapsedSinceRealTime(this.intervalEnterStart) >= simulator.getClock().secondsToTime(this.boardWaitTime);
+	}
+	
+	/**
 	 * Pickups a new passenger
 	 * @param simulator The simulator
 	 * @param passenger The passenger to pickup
@@ -288,6 +298,7 @@ public class ElevatorCar {
 		passenger.rideStarted(simulator.getClock());
 		this.passengers.add(passenger);
 		this.beginDoorTime(simulator);
+		this.boardWaitTime = 1.0;
 		
 		if (this.direction == Direction.UP) {
 			this.destinationFloor = Math.max(this.destinationFloor, passenger.getDestinationFloor());
@@ -302,8 +313,10 @@ public class ElevatorCar {
 	 * @param targetFloor The floor to move towards
 	 */
 	public void moveTowards(Simulator simulator, int targetFloor) {
-		this.direction = Direction.getDirection(this.floor, targetFloor);
-		this.destinationFloor = targetFloor;
-		this.startElevator(simulator);
+		if (this.floor != targetFloor) {
+			this.direction = Direction.getDirection(this.floor, targetFloor);
+			this.destinationFloor = targetFloor;
+			this.startElevator(simulator);
+		}
 	}
 }
