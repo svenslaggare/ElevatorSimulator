@@ -12,24 +12,27 @@ import elevatorsimulator.ElevatorCar.State;
 public class Floor {
 	private final int floorNumber;
 	private final int numResidents;
-	private final double averageArrivalRate;
+	private final TrafficProfile traficProfile;
+	
 	private final Queue<Passenger> waitingQueue;
 	
 	private long timeLeft = 0;
 	private boolean isFirst = true;
 	
-//	private long lastIntervalStart = 0;
-		
+	private long lastIntervalStart = 0;
+	private TrafficProfile.Interval interval;
+	private RandomValueGenerator<Floor> destinationFloorGenerator;
+	
 	/**
 	 * Creates a new floor
 	 * @param floorNumber The floor number
 	 * @param numResidents The number of residents
-	 * @param averageArrivalRate The average arrival rate
+	 * @param trafficProfile The traffic profile
 	 */
-	public Floor(int floorNumber, int numResidents, double averageArrivalRate) {
+	public Floor(int floorNumber, int numResidents, TrafficProfile trafficProfile) {
 		this.floorNumber = floorNumber;
 		this.numResidents = numResidents;
-		this.averageArrivalRate = averageArrivalRate;
+		this.traficProfile = trafficProfile;
 		this.waitingQueue = new LinkedList<Passenger>();
 	}
 	
@@ -46,14 +49,6 @@ public class Floor {
 	public int getNumResidents() {
 		return numResidents;
 	}
-
-	/**
-	 * Returns the average arrival rate
-	 * @return
-	 */
-	public double getAverageArrivalRate() {
-		return averageArrivalRate;
-	}
 	
 	/**
 	 * Returns the waiting queue for the floor
@@ -62,10 +57,40 @@ public class Floor {
 		return waitingQueue;
 	}
 	
-	private void generateNextArrival(Simulator simulator) {
-//		double nextTime = (-Math.log(1.0 - simulator.getRandom().nextDouble()) * (this.averageArrivalRate));
-//		this.timeLeft = simulator.getClock().secondsToTime(nextTime);
-		this.timeLeft = simulator.getClock().minutesToTime(this.averageArrivalRate);
+	/**
+	 * Sets the interval
+	 * @param simulator The simulator
+	 */
+	private void setInterval(Simulator simulator) {
+		this.interval = this.traficProfile.getIntervalData(simulator.getClock().elapsedSinceRealTime(0));
+		this.destinationFloorGenerator = new RandomValueGenerator<Floor>(simulator.getRandom());
+		
+		for (Floor floor : simulator.getBuilding().getFloors()) {
+			if (floor != this) {
+				double probability = this.interval.destinationFloorProbability(
+					simulator.getBuilding(),
+					this,
+					floor);
+				
+				//System.out.println(this.floorNumber + " -> " + floor.floorNumber + ": " + probability);
+					
+				this.destinationFloorGenerator.addValue(probability, floor);
+			}
+		}
+	}
+	
+	/**
+	 * Generates the next arrival time
+	 * @param simulator The simulator
+	 */
+	private void generateNextTimeArrival(Simulator simulator) {
+		double averageArrivalRate = this.interval.averageNumberOfArrivals(
+			simulator.getBuilding(),
+			this) / (double)this.traficProfile.lengthInMinutes();
+		
+		double nextTime = (-Math.log(1.0 - simulator.getRandom().nextDouble()) / averageArrivalRate);
+		this.timeLeft = simulator.getClock().minutesToTime(nextTime);
+		//this.timeLeft = simulator.getClock().minutesToTime(this.averageArrivalRate);
 	}
 	
 	/**
@@ -73,13 +98,14 @@ public class Floor {
 	 * @param simulator The simulator
 	 */
 	private int generateRandomDestination(Simulator simulator) {
-		while (true) {
-			int randFloor = simulator.getRandom().nextInt(simulator.getBuilding().numFloors());
-			
-			if (randFloor != this.floorNumber) {
-				return randFloor;
-			}
-		}
+//		while (true) {
+//			int randFloor = simulator.getRandom().nextInt(simulator.getBuilding().numFloors());
+//			
+//			if (randFloor != this.floorNumber) {
+//				return randFloor;
+//			}
+//		}
+		return this.destinationFloorGenerator.randomValue().floorNumber;
 	}
 	
 	/**
@@ -132,6 +158,21 @@ public class Floor {
 				}
 			}
 		}
+		
+		//Check if the next interval has started
+		SimulatorClock clock = simulator.getClock();
+		long timeNow = clock.timeNow();
+		long intervalDuration = timeNow - this.lastIntervalStart;
+		
+		if (clock.durationFromRealTime(intervalDuration) >= this.traficProfile.length() || interval == null) {
+//			if (this.floorNumber == 0 && interval != null) { 
+//				simulator.getStats().printStats();
+//			}
+			
+			this.setInterval(simulator);
+			this.lastIntervalStart = timeNow;
+			this.generateNextTimeArrival(simulator);
+		}
 				
 		this.tryGenerateNewArrival(simulator, duration);
 	}
@@ -144,7 +185,7 @@ public class Floor {
 	 */
 	public boolean tryGenerateNewArrival(Simulator simulator, long duration) {
 		if (this.isFirst) {
-			this.generateNextArrival(simulator);
+			this.generateNextTimeArrival(simulator);
 			this.isFirst = false;
 			return false;
 		}
@@ -169,9 +210,9 @@ public class Floor {
 //					+ this.floorNumber + " with the destination: "
 //					+ newPassenger.getDestinationFloor() + ".");
 			
-			simulator.arrivalGenerated(this.floorNumber);
+			simulator.arrivalGenerated(newPassenger);
 			
-			this.generateNextArrival(simulator);
+			this.generateNextTimeArrival(simulator);
 			return true;
 		}
 			

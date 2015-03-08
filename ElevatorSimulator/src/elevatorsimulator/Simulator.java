@@ -1,7 +1,6 @@
 package elevatorsimulator;
 import java.util.*;
 
-
 /**
  * The main class for the simulator
  * @author Anton Jansson
@@ -16,8 +15,6 @@ public class Simulator {
 	private final Building building;
 	private final ControlSystem controlSystem;
 	
-	private final int[] generatedArrivals;
-	
 	private long passengerId = 0;
 	
 	private final boolean enableLog = false;
@@ -30,10 +27,9 @@ public class Simulator {
 	public Simulator(Scenario scenario, SimulatorSettings settings) {
 		this.settings = settings;
 		this.clock = new SimulatorClock(settings.getSimulationSpeed());
-		this.stats = new SimulatorStats(this.clock);
 		this.building = scenario.createBuilding();
 		this.controlSystem = new ControlSystem(this.building);
-		this.generatedArrivals = new int[this.building.getFloors().length];
+		this.stats = new SimulatorStats(this);
 	}
 	
 	/**
@@ -111,38 +107,13 @@ public class Simulator {
 	}
 	
 	/**
-	 * Marks that an arrival has been generated at the given floor
-	 * @param floor The floor
+	 * Marks that an arrival has been generated
+	 * @param passenger The passenger
 	 */
-	public void arrivalGenerated(int floor) {
-		this.stats.generatedPassenger();
-		this.generatedArrivals[floor]++;
+	public void arrivalGenerated(Passenger passenger) {
+		this.stats.generatedPassenger(passenger);
 	}
-	
-	/**
-	 * Returns the total number of generated arrivals
-	 */
-	private long totalNumArrivalsGenerated() {
-		long total = 0;
-		
-		for (int i = 0; i < this.generatedArrivals.length; i++) {
-			total += this.generatedArrivals[i];
-		}
-		
-		return total;
-	}
-	
-	/**
-	 * Prints statistics about the simulator
-	 */
-	public void printStats() {
-		System.out.println("Total: " + totalNumArrivalsGenerated());
-		
-		for (int i = 0; i < this.generatedArrivals.length; i++) {
-			System.out.println(i + ": " + this.generatedArrivals[i]);
-		}
-	}
-	
+			
 	/**
 	 * Runs the simulation
 	 */
@@ -166,19 +137,22 @@ public class Simulator {
 	
 	public static void main(String[] args) {
 		List<Scenario.FloorBuilder> floors = new ArrayList<Scenario.FloorBuilder>();
-		floors.add(new Scenario.FloorBuilder(300, 0.5));
-		floors.add(new Scenario.FloorBuilder(50, 2));
-		floors.add(new Scenario.FloorBuilder(30, 1));
-		floors.add(new Scenario.FloorBuilder(60, 1.5));
-//			
-//		floors.add(new Scenario.FloorBuilder(300, 4));
-//		floors.add(new Scenario.FloorBuilder(50, 3));
-//		floors.add(new Scenario.FloorBuilder(30, 2));
-//		floors.add(new Scenario.FloorBuilder(60, 1));
+		floors.add(new Scenario.FloorBuilder(0));
+		floors.add(new Scenario.FloorBuilder(50));
+		floors.add(new Scenario.FloorBuilder(30));
+		floors.add(new Scenario.FloorBuilder(60));
 				
+		TrafficProfile.Interval[] arrivalRates = new TrafficProfile.Interval[2];
+		arrivalRates[0] = new TrafficProfile.Interval(10.0, 0.9, 0.1);
+		arrivalRates[1] = new TrafficProfile.Interval(10.0, 0.2, 0.7);
+		
 		Simulator simulator = new Simulator(
-			new Scenario(1, new ElevatorCarConfiguration(8, 1.5, 2.6, 2.6, 1), floors),
-			new SimulatorSettings(100, 30));
+			new Scenario(
+				1,
+				new ElevatorCarConfiguration(8, 1.5, 2.6, 2.6, 1),
+				floors,
+				new TrafficProfile(arrivalRates)),
+			new SimulatorSettings(100, 60));
 		
 		simulator.run();
 	}

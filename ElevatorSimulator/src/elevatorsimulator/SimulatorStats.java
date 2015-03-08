@@ -8,20 +8,39 @@ public class SimulatorStats {
 	private final SimulatorClock clock;
 	private long numGenerated;
 	private long numExists;
+	
+	private final int[] passengerFloorArrivals;
+	private final int[] passengerFloorExits;
+	private int numInterfloors;
+	
 	private long totalWaitTime;
 	private double totalSquaredWaitTime;
 	private long totalRideTime;
-	private long numRidesOver60s;
+	private long numWaitsOver60s;
 	
-	public SimulatorStats(SimulatorClock clock) {
-		this.clock = clock;
+	/**
+	 * Holds statistics for the simulator
+	 * @param simulator The simulator
+	 */
+	public SimulatorStats(Simulator simulator) {
+		this.clock = simulator.getClock();
+		int numFloors = simulator.getBuilding().getFloors().length;
+		this.passengerFloorArrivals = new int[numFloors];
+		this.passengerFloorExits = new int[numFloors];
 	}
 	
 	/**
 	 * Marks that a passenger has been generated
+	 * @param The passenger
 	 */
-	public void generatedPassenger() {
+	public void generatedPassenger(Passenger passenger) {
 		this.numGenerated++;
+		this.passengerFloorArrivals[passenger.getArrivalFloor()]++;
+		this.passengerFloorExits[passenger.getDestinationFloor()]++;
+		
+		if (passenger.getArrivalFloor() != 0 && passenger.getDestinationFloor() != 0) {
+			this.numInterfloors++;
+		}
 	}
 	
 	/**
@@ -38,8 +57,8 @@ public class SimulatorStats {
 		long rideTime = passenger.rideTime(this.clock);
 		this.totalRideTime += rideTime;
 		
-		if (rideTime > clock.secondsToTime(60)) {
-			this.numRidesOver60s++;
+		if (waitTime > clock.secondsToTime(60)) {
+			this.numWaitsOver60s++;
 		}
 	}
 	
@@ -65,10 +84,10 @@ public class SimulatorStats {
 	}
 	
 	/**
-	 * Returns the % of the rides over 60 s
+	 * Returns the % of the wait times over 60 s
 	 */
 	public double percentageOver60s() {
-		return (this.numRidesOver60s / (double)this.numExists) * 100;
+		return (this.numWaitsOver60s / (double)this.numExists) * 100;
 	}
 	
 	/**
@@ -81,6 +100,18 @@ public class SimulatorStats {
 		System.out.println("Average wait time: " + this.averageWaitTime());
 		System.out.println("Average squared wait time: " + this.averageSquaredWaitTime());
 		System.out.println("Average ride time: " + this.averageRideTime());
-		System.out.println("% of rides over 60 s: " + this.percentageOver60s());
+		System.out.println("Wait times over 60 sec: " + this.percentageOver60s() + "%");
+		
+		System.out.println("Number of interfloor travels: " + this.numInterfloors);
+		
+		System.out.println("----Floor arrivals----");
+		for (int floor = 0; floor < this.passengerFloorArrivals.length; floor++) {
+			System.out.println(floor + ": " + this.passengerFloorArrivals[floor]);
+		}
+		
+		System.out.println("----Floor exits----");
+		for (int floor = 0; floor < this.passengerFloorExits.length; floor++) {
+			System.out.println(floor + ": " + this.passengerFloorExits[floor]);
+		}
 	}
 }

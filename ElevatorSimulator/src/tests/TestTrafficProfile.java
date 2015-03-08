@@ -26,7 +26,7 @@ public class TestTrafficProfile {
 		for (int day = 0; day < 2; day++) {
 			for (int i = 0; i < arrivalRates.length; i++) {
 				long time = i * 10 * 60 * SimulatorClock.NANOSECONDS_PER_SECOND + day * 24 * 60 * 60 * SimulatorClock.NANOSECONDS_PER_SECOND;
-				assertEquals(i, traficProfile.getArrivalRate(time).getAverageArrivals(), 0);
+				assertEquals(i, traficProfile.getIntervalData(time).getAverageArrivals(), 0);
 			}
 		}
 	}

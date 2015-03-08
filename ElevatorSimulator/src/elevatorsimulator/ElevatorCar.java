@@ -27,7 +27,7 @@ public class ElevatorCar {
 	public static enum State {
 		IDLE,
 		MOVING,
-		SLOWING_DOWN,
+		DECELERATING,
 		STOPPED,
 		ACCELERATING
 	}
@@ -110,7 +110,7 @@ public class ElevatorCar {
 	public void stopElevator(Simulator simulator) {
 		simulator.elevatorDebugLog(id, "Starts to slow down.");
 		this.stopStartTime = simulator.getClock().timeNow();
-		this.state = State.SLOWING_DOWN;
+		this.state = State.DECELERATING;
 	}
 	
 	/**
@@ -254,7 +254,7 @@ public class ElevatorCar {
 				}
 			}
 			break;
-		case SLOWING_DOWN:
+		case DECELERATING:
 			{
 				if (this.hasStopped(simulator)) {
 					this.state = State.STOPPED;

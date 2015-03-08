@@ -5,8 +5,8 @@ package elevatorsimulator;
  *
  */
 public class TrafficProfile {
-	private Interval[] arrivalRates;	
-	private final long intervalLength = 10 * 60 * SimulatorClock.NANOSECONDS_PER_SECOND;
+	private final Interval[] arrivalRates;	
+	private final long intervalLengthInMin = 10;
 	
 	/**
 	 * Represents an interval
@@ -77,18 +77,18 @@ public class TrafficProfile {
 		/**
 		 * Returns the probability that a new destination is the given floor
 		 * @param building The building
-		 * @param currentFloor The current floor
+		 * @param arrivalFloor The arrival floor
 		 * @param destinationFloor The destination floor
 		 */
-		public double destinationFloorProbability(Building building, Floor currentFloor, Floor destinationFloor) {
-			if (currentFloor.getFloorNumber() == Building.LOBBY) {
+		public double destinationFloorProbability(Building building, Floor arrivalFloor, Floor destinationFloor) {
+			if (arrivalFloor.getFloorNumber() == Building.LOBBY) {
 				return destinationFloor.getNumResidents() / (double)building.getTotalNumberOfResidents();
 			} else if (destinationFloor.getFloorNumber() == Building.LOBBY) {
-				return this.getDownRate();
+				return this.getDownRate() + this.getUpRate();
 			} else {
 				return 
-					(destinationFloor.getNumResidents() / (double)(building.getTotalNumberOfResidents() - currentFloor.getNumResidents()))
-					* (1.0 - this.getDownRate());
+					(destinationFloor.getNumResidents() / (double)(building.getTotalNumberOfResidents() - arrivalFloor.getNumResidents()))
+					* getInterfloorRate();
 			}
 		}
 	}
@@ -102,10 +102,24 @@ public class TrafficProfile {
 	}
 	
 	/**
-	 * Returns the arrival rate for the given time
+	 * Returns the length of the interval in minutes
 	 */
-	public Interval getArrivalRate(long time) {
-		int intervalIndex = (int)((time / intervalLength) % this.arrivalRates.length);
+	public long lengthInMinutes() {
+		return this.intervalLengthInMin;
+	}
+	
+	/**
+	 * Returns the length of the interval
+	 */
+	public long length() {
+		return this.intervalLengthInMin * 60 * SimulatorClock.NANOSECONDS_PER_SECOND;
+	}
+	
+	/**
+	 * Returns data for the interval at the given time
+	 */
+	public Interval getIntervalData(long time) {
+		int intervalIndex = (int)((time / this.length()) % this.arrivalRates.length);
 		return this.arrivalRates[intervalIndex];
 	}
 }
