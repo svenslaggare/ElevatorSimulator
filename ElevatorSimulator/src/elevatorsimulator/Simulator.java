@@ -170,7 +170,7 @@ public class Simulator {
 		}	
 		
 		System.out.println(new Date() + ": Simulation finished.");		
-		System.out.println("--------------------STATS--------------------");
+		System.out.println("--------------------" + this.controlSystem.getSchedulerName() + "--------------------");
 		this.stats.printStats();		
 	}
 	
@@ -193,7 +193,9 @@ public class Simulator {
 		
 		TrafficProfile.Interval[] arrivalRates = new TrafficProfile.Interval[1];
 		//arrivalRates[0] = new TrafficProfile.Interval(0.12, 1.0, 0.0);
-		arrivalRates[0] = new TrafficProfile.Interval(0.12, 0.45, 0.45);
+		//arrivalRates[0] = new TrafficProfile.Interval(0.03, 0.45, 0.45);
+		//arrivalRates[0] = new TrafficProfile.Interval(0.03, 0.1, 0.9);
+		arrivalRates[0] = new TrafficProfile.Interval(0.06, 0.45, 0.45);
 		
 		Simulator simulator = new Simulator(
 			new Scenario(
@@ -201,7 +203,7 @@ public class Simulator {
 				new ElevatorCarConfiguration(8, 1.5, 2.6, 2.6, 1),
 				floors,
 				new TrafficProfile(arrivalRates)),
-			new SimulatorSettings(100, 60));
+			new SimulatorSettings(100, 30));
 		
 		simulator.run();
 	}

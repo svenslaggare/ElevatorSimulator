@@ -1,23 +1,27 @@
 package elevatorsimulator.schedulers;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Queue;
 
 import elevatorsimulator.Direction;
 import elevatorsimulator.ElevatorCar;
-import elevatorsimulator.ElevatorCar.State;
 import elevatorsimulator.Passenger;
 import elevatorsimulator.SchedulingAlgorithm;
 import elevatorsimulator.Simulator;
+import elevatorsimulator.ElevatorCar.State;
 
 /**
- * Implements the 'Collective control' scheduling algorithm
+ * Implements the 'Longest Queue First' scheduling algorithm
  * @author Anton Jansson
  *
  */
-public class CollectiveControl implements SchedulingAlgorithm {
+public class LongestQueueFirst implements SchedulingAlgorithm {
 	@Override
 	public void passengerArrived(Simulator simulator, Passenger passenger) {
-		
+
 	}
 
 	private static enum HandleType {
@@ -29,9 +33,18 @@ public class CollectiveControl implements SchedulingAlgorithm {
 	@Override
 	public void update(Simulator simulator) {
 		Queue<Passenger> hallCallQueue = simulator.getControlSystem().getHallQueue();
+		List<Passenger> hallCalls = new ArrayList<Passenger>(hallCallQueue);
+		Collections.sort(hallCalls, new Comparator<Passenger>() {
+			@Override
+			public int compare(Passenger p1, Passenger p2) {
+				return Double.compare(
+					p2.waitTime(simulator.getClock()),
+					p1.waitTime(simulator.getClock()));
+			}
+		});
 		
-		if (!hallCallQueue.isEmpty()) {			
-			for (Passenger passenger : hallCallQueue) {
+		if (!hallCalls.isEmpty()) {			
+			for (Passenger passenger : hallCalls) {
 				ElevatorCar closestElevator = null;
 				int minDeltaFloor = 0;
 				HandleType type = HandleType.NONE;
@@ -104,11 +117,11 @@ public class CollectiveControl implements SchedulingAlgorithm {
 
 	@Override
 	public void onIdle(Simulator simulator, ElevatorCar elevatorCar) {
-		//elevatorCar.moveTowards(simulator, 0);
-	}
+
+	}	
 	
 	@Override
 	public String toString() {
-		return "CollectiveControl";
+		return "LongestQueueFirst";
 	}
 }

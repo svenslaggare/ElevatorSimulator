@@ -29,7 +29,8 @@ public class ElevatorCar {
 		MOVING,
 		DECELERATING,
 		STOPPED,
-		ACCELERATING
+		ACCELERATING,
+		TURNING
 	}
 	
 	private State state = State.IDLE;
@@ -38,6 +39,7 @@ public class ElevatorCar {
 	private long stopStartTime;
 	private long startStartTime;
 	private long intervalEnterStart;
+	private long turnStartTime;
 	private double boardWaitTime = 0.0;
 	
 	/**
@@ -125,7 +127,7 @@ public class ElevatorCar {
 	 * Indicates if the elevator has stopped
 	 * @param simulator The simulator
 	 */
-	public boolean hasStopped(Simulator simulator) {
+	private boolean hasStopped(Simulator simulator) {
 		SimulatorClock clock = simulator.getClock();
 		
 		double stopTime = this.configuration.getStopTime() + this.configuration.getDoorTime();
@@ -150,7 +152,7 @@ public class ElevatorCar {
 	 * Indicates if the elevator has started
 	 * @param simulator The simulator
 	 */
-	public boolean hasStarted(Simulator simulator) {
+	private boolean hasStarted(Simulator simulator) {
 		SimulatorClock clock = simulator.getClock();
 		
 		if (clock.elapsedSinceRealTime(this.startStartTime) >= clock.secondsToTime(this.configuration.getStartTime())) {
@@ -167,6 +169,34 @@ public class ElevatorCar {
 	private void beginDoorTime(Simulator simulator) {
 		simulator.elevatorDebugLog(this.id, "Starts closing doors.");
 		this.intervalEnterStart = simulator.getClock().timeNow();
+	}
+	
+	
+	/**
+	 * Changes the direction of the elevator
+	 * @param simulator The simulator
+	 */
+	public void turnElevator(Simulator simulator) {
+		if (this.direction != Direction.NONE) {
+			this.state = State.TURNING;
+			this.turnStartTime = simulator.getClock().timeNow();
+			this.direction = this.direction.oppositeDir();
+		}
+	}
+	
+	/**
+	 * Indicates if the elevator has turned
+	 * @param simulator The simulator
+	 */
+	private boolean hasTurned(Simulator simulator) {
+		SimulatorClock clock = simulator.getClock();
+		
+		double turnTime = this.configuration.getStopTime() + this.configuration.getStartTime();
+		if (clock.elapsedSinceRealTime(this.turnStartTime) >= clock.secondsToTime(turnTime)) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 	
 	/**
@@ -264,6 +294,13 @@ public class ElevatorCar {
 				}
 			}
 			break;
+		case TURNING:
+			{
+				if (this.hasTurned(simulator)) {
+					this.state = State.MOVING;
+				}
+			}
+			break;
 			default:
 				break;
 		}
@@ -314,9 +351,20 @@ public class ElevatorCar {
 	 */
 	public void moveTowards(Simulator simulator, int targetFloor) {
 		if (this.floor != targetFloor) {
-			this.direction = Direction.getDirection(this.floor, targetFloor);
-			this.destinationFloor = targetFloor;
-			this.startElevator(simulator);
+			Direction dir = Direction.getDirection(this.floor, targetFloor);
+			
+			if (this.state != State.MOVING) {
+				this.destinationFloor = targetFloor;
+				this.direction = dir;
+				this.startElevator(simulator);
+			} else {
+				if (this.direction == dir) {
+					this.destinationFloor = targetFloor;
+				} else {
+					this.destinationFloor = targetFloor;
+					this.turnElevator(simulator);
+				}
+			}
 		}
 	}
 }

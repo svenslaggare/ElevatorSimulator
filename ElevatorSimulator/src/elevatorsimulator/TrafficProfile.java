@@ -20,18 +20,18 @@ public class TrafficProfile {
 		
 		/**
 		 * Creates a new interval
-		 * @param averageArrivalRatio The average amount of arrivals ratio in the interval
+		 * @param averageArrivalRatio The average arrival ratio in the HC% metric
 		 * @param upRate The up rate
 		 * @param downRate The down rate
 		 */
 		public Interval(double averageArrivalRatio, double upRate, double downRate) {
-			this.averageArrivalRatio = averageArrivalRatio;
+			this.averageArrivalRatio = averageArrivalRatio * 2;
 			this.upRate = upRate;
 			this.downRate = downRate;
 		}
 
 		/**
-		 * Returns the average amount of arrivals ratio
+		 * Returns the average arrival ratio in the HC% metric
 		 */
 		public double getAverageArrivalRatio() {
 			return averageArrivalRatio;

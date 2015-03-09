@@ -8,7 +8,7 @@ public enum Direction {
 	NONE,
 	UP,
 	DOWN;
-	
+		
 	/**
 	 * Returns the direction between the given floors
 	 * @param currentFloor The current floor
@@ -20,6 +20,19 @@ public enum Direction {
 		if (dir < 0) {
 			return DOWN;
 		} else if (dir > 0) {
+			return UP;
+		} else {
+			return NONE;
+		}
+	}
+	
+	/**
+	 * Returns the opposite direction
+	 */
+	public Direction oppositeDir() { 
+		if (this == UP) {
+			return DOWN;
+		} else if (this == DOWN) {
 			return UP;
 		} else {
 			return NONE;
