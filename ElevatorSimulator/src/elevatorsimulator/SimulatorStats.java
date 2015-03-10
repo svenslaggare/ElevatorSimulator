@@ -22,6 +22,8 @@ public class SimulatorStats {
 	private long totalRideTime;
 	private long numWaitsOver60s;
 	
+	private final ElevatorCar[] elevatorCars;
+	
 	/**
 	 * Holds statistics for the simulator
 	 * @param simulator The simulator
@@ -32,6 +34,7 @@ public class SimulatorStats {
 		this.numResidents = simulator.getBuilding().getTotalNumberOfResidents();
 		this.passengerFloorArrivals = new int[numFloors];
 		this.passengerFloorExits = new int[numFloors];
+		this.elevatorCars = simulator.getBuilding().getElevatorCars();
 	}
 	
 	/**
@@ -128,6 +131,11 @@ public class SimulatorStats {
 		System.out.println("----Floor exits----");
 		for (int floor = 0; floor < this.passengerFloorExits.length; floor++) {
 			System.out.println(floor + ": " + this.passengerFloorExits[floor]);
+		}
+		
+		System.out.println("----Elevators----");
+		for (ElevatorCar elevator : this.elevatorCars) {
+			System.out.println(elevator.getId() + ": " + elevator.getNumPassengers());
 		}
 	}
 }

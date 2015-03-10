@@ -11,6 +11,7 @@ public class Passenger {
 	private final int arrivalFloor;
 	private final int destinationFloor;
 	private final int capacity;
+	private boolean boarded;
 	
 	private final long timeOfArrival;
 	private long timeOfRideStarted;
@@ -59,6 +60,20 @@ public class Passenger {
 	 */
 	public int getCapacity() {
 		return capacity;
+	}
+	
+	/**
+	 * Indicates if the passenger has boarded any elevator
+	 */
+	public boolean hasBoarded() {
+		return this.boarded;
+	}
+	
+	/**
+	 * Boards an elevator
+	 */
+	public void board() {
+		this.boarded = true;
 	}
 	
 	/**

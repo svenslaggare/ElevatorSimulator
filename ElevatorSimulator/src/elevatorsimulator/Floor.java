@@ -90,7 +90,6 @@ public class Floor {
 		
 		double nextTime = (-Math.log(1.0 - simulator.getRandom().nextDouble()) / averageArrivalRate);
 		this.timeLeft = simulator.getClock().minutesToTime(nextTime);
-		//this.timeLeft = simulator.getClock().minutesToTime(this.averageArrivalRate);
 	}
 	
 	/**
@@ -98,13 +97,6 @@ public class Floor {
 	 * @param simulator The simulator
 	 */
 	private int generateRandomDestination(Simulator simulator) {
-//		while (true) {
-//			int randFloor = simulator.getRandom().nextInt(simulator.getBuilding().numFloors());
-//			
-//			if (randFloor != this.floorNumber) {
-//				return randFloor;
-//			}
-//		}
 		return this.destinationFloorGenerator.randomValue().floorNumber;
 	}
 	
@@ -116,6 +108,7 @@ public class Floor {
 	private void hallCallHandled(Simulator simulator, Passenger passenger) {
 		this.waitingQueue.remove(passenger);
 		simulator.getControlSystem().hallCallHandled(passenger);
+		passenger.board();
 	}
 	
 	/**

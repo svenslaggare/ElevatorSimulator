@@ -11,6 +11,8 @@ public class ElevatorCarConfiguration {
 	private final double startTime;
 	private final double doorTime;
 	
+	private static final ElevatorCarConfiguration DEFAULT_CONFIGURATION = new ElevatorCarConfiguration(8, 1.5, 2.6, 2.6, 1);
+	
 	/**
 	 * Creates a new elevator car configuration
 	 * @param capacity The capacity
@@ -59,5 +61,13 @@ public class ElevatorCarConfiguration {
 	 */
 	public double getDoorTime() {
 		return doorTime;
+	}
+	
+	/**
+	 * Returns the default configuration
+	 * @return
+	 */
+	public static ElevatorCarConfiguration defaultConfiguration() {
+		return DEFAULT_CONFIGURATION;
 	}
 }

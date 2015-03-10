@@ -2,8 +2,6 @@ package elevatorsimulator;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import elevatorsimulator.schedulers.*;
-
 /**
  * Represents the control system for the elevator
  * @author Anton Jansson
@@ -17,14 +15,15 @@ public class ControlSystem {
 	/**
 	 * Creates a new control system for the given simulator
 	 * @param simulator The simulator
+	 * @param The scheduler
 	 */
-	public ControlSystem(Simulator simulator) {
+	public ControlSystem(Simulator simulator, SchedulingAlgorithm scheduler) {
 		this.simulator = simulator;
-//		this.scheduler = new CollectiveControl();
-		this.scheduler = new Zoning(
-			simulator.getBuilding().getElevatorCars().length,
-			simulator.getBuilding());
-//		this.scheduler = new LongestQueueFirst();
+		this.scheduler = scheduler;
+		
+		for (ElevatorCar elevator : simulator.getBuilding().getElevatorCars()) {
+			this.elevatorIdle(elevator);
+		}
 	}
 	
 	/**

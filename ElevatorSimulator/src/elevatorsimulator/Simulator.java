@@ -1,6 +1,8 @@
 package elevatorsimulator;
 import java.util.*;
 
+import elevatorsimulator.schedulers.*;
+
 /**
  * The main class for the simulator
  * @author Anton Jansson
@@ -25,12 +27,14 @@ public class Simulator {
 	/**
 	 * Creates a new simulator
 	 * @param scenario The scenario
+	 * @param settings The settings
+	 * @param scheduler The scheduler
 	 */
-	public Simulator(Scenario scenario, SimulatorSettings settings) {
+	public Simulator(Scenario scenario, SimulatorSettings settings, SchedulerCreator schedulerCreator) {
 		this.settings = settings;
 		this.clock = new SimulatorClock(settings.getSimulationSpeed());
 		this.building = scenario.createBuilding();
-		this.controlSystem = new ControlSystem(this);
+		this.controlSystem = new ControlSystem(this, schedulerCreator.createScheduler(this.building));
 		this.stats = new SimulatorStats(this);
 	}
 	
@@ -175,18 +179,10 @@ public class Simulator {
 	}
 	
 	public static void main(String[] args) {
-		List<Scenario.FloorBuilder> floors = new ArrayList<Scenario.FloorBuilder>();
-		floors.add(new Scenario.FloorBuilder(0));
-		floors.add(new Scenario.FloorBuilder(80));
-		floors.add(new Scenario.FloorBuilder(70));
-		floors.add(new Scenario.FloorBuilder(90));		
-		floors.add(new Scenario.FloorBuilder(80));
-		floors.add(new Scenario.FloorBuilder(115));
-		floors.add(new Scenario.FloorBuilder(120));
-		floors.add(new Scenario.FloorBuilder(90));
-		floors.add(new Scenario.FloorBuilder(80));
-		floors.add(new Scenario.FloorBuilder(50));	
-		
+		int[] floors = new int[] {
+			0, 80, 70, 90, 80, 115, 120, 90, 80, 90, 80, 100, 80, 80, 50
+		};
+			
 //		TrafficProfile.Interval[] arrivalRates = new TrafficProfile.Interval[2];
 //		arrivalRates[0] = new TrafficProfile.Interval(20.0, 0.9, 0.1);
 //		arrivalRates[1] = new TrafficProfile.Interval(20.0, 0.2, 0.7);
@@ -194,16 +190,28 @@ public class Simulator {
 		TrafficProfile.Interval[] arrivalRates = new TrafficProfile.Interval[1];
 		//arrivalRates[0] = new TrafficProfile.Interval(0.12, 1.0, 0.0);
 		//arrivalRates[0] = new TrafficProfile.Interval(0.03, 0.45, 0.45);
-		//arrivalRates[0] = new TrafficProfile.Interval(0.03, 0.1, 0.9);
-		arrivalRates[0] = new TrafficProfile.Interval(0.06, 0.45, 0.45);
+//		arrivalRates[0] = new TrafficProfile.Interval(0.03, 0.1, 0.9);
+		arrivalRates[0] = new TrafficProfile.Interval(0.03, 1, 0.0);
+//		arrivalRates[0] = new TrafficProfile.Interval(0.06, 0.45, 0.45);
+				
+		SchedulerCreator creator = new SchedulerCreator() {		
+			@Override
+			public SchedulingAlgorithm createScheduler(Building building) {
+//				return new CollectiveControl();
+				//return new Zoning(building.getElevatorCars().length, building);
+//				return new LongestQueueFirst();
+				return new RoundRobin(building, true);
+			}
+		};
 		
 		Simulator simulator = new Simulator(
 			new Scenario(
 				3,
-				new ElevatorCarConfiguration(8, 1.5, 2.6, 2.6, 1),
+				ElevatorCarConfiguration.defaultConfiguration(),
 				floors,
 				new TrafficProfile(arrivalRates)),
-			new SimulatorSettings(100, 30));
+			new SimulatorSettings(100, 30),
+			creator);
 		
 		simulator.run();
 	}

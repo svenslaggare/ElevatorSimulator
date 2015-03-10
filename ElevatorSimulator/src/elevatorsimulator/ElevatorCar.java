@@ -42,6 +42,8 @@ public class ElevatorCar {
 	private long turnStartTime;
 	private double boardWaitTime = 0.0;
 	
+	private long numPassengers;
+	
 	/**
 	 * Creates a new elevator
 	 * @param id The id of the elevator
@@ -104,6 +106,20 @@ public class ElevatorCar {
 	 */
 	public List<Passenger> getPassengers() {
 		return passengers;
+	}
+	
+	/**
+	 * Indicates if the elevator car is empty
+	 */
+	public boolean isEmpty() {
+		return passengers.isEmpty();
+	}
+	
+	/**
+	 * Returns the number of passengers handled
+	 */
+	public long getNumPassengers() {
+		return numPassengers;
 	}
 
 	/**
@@ -336,6 +352,7 @@ public class ElevatorCar {
 		this.passengers.add(passenger);
 		this.beginDoorTime(simulator);
 		this.boardWaitTime = 1.0;
+		this.numPassengers++;
 		
 		if (this.direction == Direction.UP) {
 			this.destinationFloor = Math.max(this.destinationFloor, passenger.getDestinationFloor());
