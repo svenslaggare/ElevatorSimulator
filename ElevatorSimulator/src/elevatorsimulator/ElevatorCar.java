@@ -322,12 +322,21 @@ public class ElevatorCar {
 		}
 	}
 	
+
+	/**
+	 * Indicates if the elevator can pickup the given passenger
+	 * @param capacity The passenger capacity
+	 */
+	public boolean canPickupPassenger(int capacity) {
+		return this.passengers.size() + capacity <= this.configuration.getCapacity();
+	}
+	
 	/**
 	 * Indicates if the elevator can pickup the given passenger
 	 * @param passenger The passenger
 	 */
 	public boolean canPickupPassenger(Passenger passenger) {
-		return this.passengers.size() + passenger.getCapacity() <= this.configuration.getCapacity();
+		return this.canPickupPassenger(passenger.getCapacity());
 	}
 	
 	/**

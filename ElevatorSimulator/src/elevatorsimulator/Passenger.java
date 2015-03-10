@@ -56,6 +56,13 @@ public class Passenger {
 	}
 	
 	/**
+	 * Returns the direction of the passenger
+	 */
+	public Direction getDirection() {
+		return Direction.getDirection(arrivalFloor, destinationFloor);
+	}
+	
+	/**
 	 * Returns the capacity
 	 */
 	public int getCapacity() {
