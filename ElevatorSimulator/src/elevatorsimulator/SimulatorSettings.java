@@ -7,14 +7,14 @@ package elevatorsimulator;
  */
 public class SimulatorSettings {
 	private final double simulationSpeed;
-	private final long simulationTimeInSec;
+	private final double simulationTimeInSec;
 	
 	/**
 	 * Creates new settings
 	 * @param simulationSpeed The simulation speed
 	 * @param simulationTimeInSec The simulation time in seconds
 	 */
-	public SimulatorSettings(double simulationSpeed, long simulationTimeInSec) {
+	public SimulatorSettings(double simulationSpeed, double simulationTimeInSec) {
 		if (simulationSpeed < 1.0) {
 			throw new IllegalArgumentException("simulationSpeed must be >= 1.0");
 		}
@@ -33,7 +33,7 @@ public class SimulatorSettings {
 	/**
 	 * Returns the simulation time in seconds
 	 */
-	public long getSimulationTimeInSec() {
+	public double getSimulationTimeInSec() {
 		return simulationTimeInSec;
 	}	
 }

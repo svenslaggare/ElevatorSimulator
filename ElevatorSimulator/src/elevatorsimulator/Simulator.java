@@ -11,7 +11,7 @@ import elevatorsimulator.schedulers.*;
 public class Simulator {
 	private final SimulatorSettings settings;
 	private final SimulatorClock clock;
-	private final Random random = new Random(1337);
+	private Random random = new Random(1337);
 	private final SimulatorStats stats;
 	
 	private final Building building;
@@ -21,7 +21,7 @@ public class Simulator {
 	
 	private long passengerId = 0;
 	
-	private final boolean enableLog = false;
+	private final boolean enableLog = true;
 	private final boolean debugMode = true;
 	
 	/**
@@ -88,7 +88,18 @@ public class Simulator {
 	 */
 	public void log(String line) {
 		if (enableLog) {
-			System.out.println(new Date().toString() + ": " + line);
+//			System.out.println(new Date().toString() + ": " + line);
+			long simulatedTime = this.clock.elapsedSinceRealTime(0);
+			double numHours = simulatedTime / (60.0 * 60.0 * SimulatorClock.NANOSECONDS_PER_SECOND);
+			double numMin = 60 * (numHours - (int)numHours);
+			double numSec = 60 * (numMin - (int)numMin);
+			
+			int hour = (int)numHours;
+			int min = (int)numMin;
+			int sec = (int)numSec;
+			
+			String timeStr = (hour < 10 ? "0" + hour : hour) + ":" + (min < 10 ? "0" + min : min) + ":" + (sec < 10 ? "0" + sec : sec);
+			System.out.println(timeStr + ": " + line);
 		}
 	}
 	
@@ -178,6 +189,61 @@ public class Simulator {
 		this.stats.printStats();		
 	}
 	
+	private long prevStep;
+	private boolean run = false;
+	
+	/**
+	 * Starts the simulator
+	 */
+	public void start() {
+		this.prevStep = this.clock.timeNow();
+		this.run = true;
+	}
+	
+	/**
+	 * Resets the simulator
+	 */
+	public void reset() {
+		this.simulationStartTime = System.currentTimeMillis();
+		this.controlSystem.reset();
+		this.building.reset();
+		this.clock.reset();
+		this.stats.reset();
+		this.random = new Random(1337);
+	}
+	
+	/**
+	 * Advances the simulator one step
+	 * @return True if there are any more steps
+	 */
+	public boolean advance() {
+		if (this.run) {
+			long timeNowNano = System.nanoTime();
+			moveForward(this.clock.durationFromRealTime(timeNowNano - this.prevStep));
+			this.prevStep = timeNowNano;
+			
+			if (!this.canGenerateArrivals()) {
+				this.run = false;
+//				if (this.floorsEmpty() && this.elevatorsEmpty()) {
+//					break;
+//				}
+				
+				return false;
+			} else {
+				return true;
+			}
+		} else {
+			return false;
+		}
+	}
+	
+	/**
+	 * Prints the statistics
+	 */
+	public void printStats() {
+		this.stats.printStats();
+	}
+	
 	public static void main(String[] args) {
 		int[] floors = new int[] {
 			0, 80, 70, 90, 80, 115, 120, 90, 80, 90, 80, 100, 80, 80, 50
@@ -210,7 +276,7 @@ public class Simulator {
 				ElevatorCarConfiguration.defaultConfiguration(),
 				floors,
 				new TrafficProfile(arrivalRates)),
-			new SimulatorSettings(100, 30),
+			new SimulatorSettings(100, 3),
 			creator);
 		
 		simulator.run();

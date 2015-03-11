@@ -121,6 +121,8 @@ public class Floor {
 			for (Passenger passenger : new LinkedList<Passenger>(this.waitingQueue)) {
 				for (ElevatorCar elevator : simulator.getBuilding().getElevatorCars()) {
 					if (elevator.getState() == State.STOPPED || elevator.getState() == State.IDLE) {
+//						simulator.elevatorLog(elevator.getId(), "Trying to pick up passenger at floor: " + passenger.getArrivalFloor());
+						
 						//Check if the elevator can pickup the passenger
 						if (!elevator.canPickupPassenger(passenger) || !elevator.canBoard(simulator)) {
 							continue;
@@ -200,10 +202,10 @@ public class Floor {
 			this.waitingQueue.add(newPassenger);		
 			simulator.getControlSystem().handleHallCall(newPassenger);
 			
-//			simulator.log(
-//					"Generated a new passenger at floor "
-//					+ this.floorNumber + " with the destination: "
-//					+ newPassenger.getDestinationFloor() + ".");
+			simulator.log(
+				"Generated a new passenger at floor "
+				+ this.floorNumber + " with the destination: "
+				+ newPassenger.getDestinationFloor() + ".");
 			
 			simulator.arrivalGenerated(newPassenger);
 			
@@ -212,5 +214,15 @@ public class Floor {
 		}
 			
 		return false;
+	}
+
+	/**
+	 * Resets the floor
+	 */
+	public void reset() {
+		this.waitingQueue.clear();
+		this.interval = null;
+		this.isFirst = true;
+		this.timeLeft = 0;
 	}
 }

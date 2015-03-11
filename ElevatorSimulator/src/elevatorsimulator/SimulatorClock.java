@@ -9,7 +9,7 @@ public class SimulatorClock {
 	public static final long NANOSECONDS_PER_SECOND = 1000000000;
 	private final double simulationSpeed;
 	
-	private final long simulationStarted;
+	private long simulationStarted;
 	
 	/**
 	 * Creates a new simulator clock
@@ -71,5 +71,12 @@ public class SimulatorClock {
 	 */
 	public long minutesToTime(double minutes) {
 		return (long)((minutes * 60) / TIME_SCALE);
+	}
+	
+	/**
+	 * Resets the clock
+	 */
+	public void reset() {
+		this.simulationStarted = System.nanoTime();
 	}
 }

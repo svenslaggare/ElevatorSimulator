@@ -72,4 +72,11 @@ public class ControlSystem {
 	public void update(long duration) {		
 		this.scheduler.update(simulator);
 	}
+	
+	/**
+	 * Resets the control system
+	 */
+	public void reset() {
+		this.hallCallQueue.clear();
+	}
 }

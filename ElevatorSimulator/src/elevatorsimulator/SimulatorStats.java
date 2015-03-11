@@ -138,4 +138,29 @@ public class SimulatorStats {
 			System.out.println(elevator.getId() + ": " + elevator.getNumPassengers());
 		}
 	}
+	
+	/**
+	 * Resets the stats
+	 */
+	public void reset() {
+		this.numGenerated = 0;
+		this.numExists = 0;
+		
+		for (int i = 0; i < passengerFloorArrivals.length; i++) {
+			passengerFloorArrivals[i] = 0;
+		}
+		
+		for (int i = 0; i < passengerFloorExits.length; i++) {
+			passengerFloorExits[i] = 0;
+		}
+				
+		this.numUp = 0;
+		this.numDown = 0;
+		this.numInterfloors = 0;
+		
+		this.totalWaitTime = 0;
+		this.totalSquaredWaitTime = 0;
+		this.totalRideTime = 0;
+		this.numWaitsOver60s = 0;
+	}
 }

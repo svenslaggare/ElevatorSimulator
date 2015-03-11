@@ -82,4 +82,17 @@ public class Building {
 			this.elevatorCars[i].update(simulator);
 		}
 	}
+	
+	/**
+	 * Resets the building
+	 */
+	public void reset() {
+		for (Floor floor : this.floors) {
+			floor.reset();
+		}
+		
+		for (ElevatorCar elevator : this.elevatorCars) {
+			elevator.reset();
+		}
+	}
 }

@@ -393,4 +393,17 @@ public class ElevatorCar {
 			}
 		}
 	}
+	
+	/**
+	 * Resets the elevator car
+	 */
+	public void reset() {
+		this.state = State.IDLE;
+		this.stopAtNext = false;
+		this.direction = Direction.NONE;
+		this.passengers.clear();
+		this.numPassengers = 0;
+		this.lastMovement = 0;
+		this.floor = 0;
+	}
 }
