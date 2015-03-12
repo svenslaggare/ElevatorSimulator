@@ -405,5 +405,6 @@ public class ElevatorCar {
 		this.numPassengers = 0;
 		this.lastMovement = 0;
 		this.floor = 0;
+		this.intervalEnterStart = 0;
 	}
 }

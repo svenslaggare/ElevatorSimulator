@@ -1,5 +1,6 @@
 package elevatorsimulator.reinforcementlearning;
 
+import elevatorsimulator.Direction;
 import elevatorsimulator.ElevatorCar;
 import elevatorsimulator.ElevatorCar.State;
 import elevatorsimulator.Passenger;
@@ -15,6 +16,7 @@ import marl.utility.Config;
  */
 public class ElevatorSystemEnvironment implements Environment<ElevatorCarState, ElevatorCarAgent> {
 	private int time;
+	@SuppressWarnings("unused")
 	private final Config config;
 	private final Simulator simulator;
 	private int numAgents;
@@ -56,6 +58,9 @@ public class ElevatorSystemEnvironment implements Environment<ElevatorCarState, 
 	public void reset(int episodeNo) {
 		//Reset the environment
 		for (int i = 0; i < this.numAgents; i++) {
+			ElevatorCar elevatorCar = this.tuples[i].agent_.getElevatorCar();
+			this.tuples[i].state_ = new ElevatorCarState(simulator.getBuilding(), elevatorCar);
+			this.tuples[i].next_ = new ElevatorCarState(simulator.getBuilding(), elevatorCar);
 			this.tuples[i].sumReward_ = 0;
 			this.tuples[i].agent_.reset(episodeNo);
 		}
@@ -102,23 +107,71 @@ public class ElevatorSystemEnvironment implements Environment<ElevatorCarState, 
 		for (int i = 0; i < this.tuples.length; i++) {
 			if (this.tuples[i].agent_ == agent) {
 				ElevatorCarAgent.Action action = ElevatorSystemEnvironment.actions[actionNum];
+				ElevatorCar elevatorCar = agent.getElevatorCar();
+				elevatorsimulator.Floor[] floors = this.simulator.getBuilding().getFloors();
 				
 				switch (action) {
-//				case CONTINUE:
-//					break;
-//				case STOP_AT_NEXT:					
-//					break;
-				case MOVE_DOWN:
-					if (agent.getElevatorCar().getState() == State.IDLE) {
-						agent.getElevatorCar().moveTowards(this.simulator, 0);
+				case STOP_AT_NEXT:		
+					if (elevatorCar.getState() != State.IDLE) {
+						int nextFloorIndex = elevatorCar.getFloor();
+						
+						if (elevatorCar.getDirection() == Direction.UP) {
+							nextFloorIndex++;
+						} else if (elevatorCar.getDirection() == Direction.DOWN) {
+							nextFloorIndex--;
+						}
+						
+						if (nextFloorIndex >= 0 && nextFloorIndex < floors.length) {
+							elevatorsimulator.Floor nextFloor = floors[nextFloorIndex];
+							
+							if (!nextFloor.getWaitingQueue().isEmpty()) {
+								boolean hasInDir = false;
+								
+								for (Passenger passenger : nextFloor.getWaitingQueue()) {
+									if (passenger.getDirection() == elevatorCar.getDirection()) {
+										hasInDir = true;
+										break;
+									}
+								}
+								
+								if (hasInDir) {
+									elevatorCar.stopElevatorAtNextFloor();
+								}
+							}
+						}
 					}
 					break;
-//				case MOVE_UP:
-//					break;
+				case MOVE_DOWN:
+					if (elevatorCar.getState() == State.IDLE) {
+						int lowestFloor = elevatorCar.getFloor();
+						for (Passenger passenger : this.simulator.getControlSystem().getHallQueue()) {
+							if (passenger.getArrivalFloor() < lowestFloor) {
+								lowestFloor = passenger.getArrivalFloor();
+							}
+						}
+						
+						elevatorCar.moveTowards(simulator, lowestFloor);
+					}
+					break;
+				case MOVE_UP:
+					if (elevatorCar.getState() == State.IDLE) {
+						int highestFloor = elevatorCar.getFloor();
+						for (Passenger passenger : this.simulator.getControlSystem().getHallQueue()) {
+							if (passenger.getArrivalFloor() > highestFloor) {
+								highestFloor = passenger.getArrivalFloor();
+							}
+						}
+						
+						elevatorCar.moveTowards(simulator, highestFloor);
+					}
+					break;
 				default:
 					break;				
 				}
 			}
+			
+//			this.tuples[i].next_.updateState(this.simulator.getBuilding(), agent.getElevatorCar());
+//			this.tuples[i].next_.set(this.tuples[i].state_);  
 		}
 	}
 
@@ -142,6 +195,10 @@ public class ElevatorSystemEnvironment implements Environment<ElevatorCarState, 
         // Let each agent choose what to do
         for(int i = 0; i < this.numAgents; i++) {
             this.tuples[i].agent_.step(this.time);
+            
+			this.tuples[i].next_.updateState(this.simulator.getBuilding(), this.tuples[i].agent_.getElevatorCar());
+            this.tuples[i].state_.set(this.tuples[i].next_);
+//			this.tuples[i].next_.set(this.tuples[i].state_);  
         }
         
         // Update

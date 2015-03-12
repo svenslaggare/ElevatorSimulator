@@ -40,7 +40,7 @@ public class ElevatorCarState implements State<ElevatorCarState> {
 			BOTH
 		}
 		
-		private final CallState state;
+		private CallState state;
 		
 		/**
 		 * Create a new floor state
@@ -56,6 +56,14 @@ public class ElevatorCarState implements State<ElevatorCarState> {
 		public CallState getState() {
 			return state;
 		}		
+		
+		/**
+		 * Sets the state
+		 * @param state The new state
+		 */
+		public void setState(CallState state) {
+			this.state = state;
+		}
 		
 		@Override
 		public boolean equals(Object obj) {
@@ -170,6 +178,72 @@ public class ElevatorCarState implements State<ElevatorCarState> {
 	 */
 	public List<ElevatorCarState.Floor> getFloors() {
 		return floors;
+	}
+	
+	/**
+	 * Updates the state of the elevator car
+	 * @param building The building
+	 * @param elevatorCar The elevator car
+	 */
+	public void updateState(Building building, ElevatorCar elevatorCar) {
+		int i = 0;
+		for (elevatorsimulator.Floor floor : building.getFloors()) {
+			boolean hasUp = false;
+			boolean hasDown = false;
+			Floor.CallState state = Floor.CallState.NONE;
+			
+			for (Passenger passenger : floor.getWaitingQueue()) {
+				if (passenger.getDirection() == Direction.UP) {
+					hasUp = true;
+				}
+				
+				if (passenger.getDirection() == Direction.DOWN) {
+					hasUp = hasDown;
+				}
+			}
+			
+			if (hasUp && hasDown) {
+				state = Floor.CallState.BOTH;
+			} else if (hasUp) {
+				state = Floor.CallState.UP;
+			} else if (hasDown) {
+				state = Floor.CallState.DOWN;
+			}
+			
+			this.floors.get(i).setState(state);
+			i++;
+		}
+		
+		PassengerState state = PassengerState.EMPTY;
+		
+		if (elevatorCar.isEmpty()) {
+			state = PassengerState.EMPTY;
+		} else if (elevatorCar.canPickupPassenger(1)) {
+			state = PassengerState.HAS_CAPACITY;
+		} else {
+			state = PassengerState.FULL;
+		}
+		
+		int nextStop = -1;
+		int minDelta = Integer.MAX_VALUE;
+		
+		for (Passenger passenger : elevatorCar.getPassengers()) {
+			int delta = Math.abs(passenger.getDestinationFloor() - elevatorCar.getFloor());
+			
+			if (delta < minDelta) {
+				minDelta = delta;
+				nextStop = passenger.getDestinationFloor();
+			}
+		}
+		
+		if (nextStop == -1) {
+			nextStop = elevatorCar.getDestinationFloor();
+		}
+		
+		this.passengerState = state;
+		this.nextStop = nextStop;
+		this.floor = elevatorCar.getFloor();
+		this.direction = elevatorCar.getDirection();
 	}
 	
 	@Override

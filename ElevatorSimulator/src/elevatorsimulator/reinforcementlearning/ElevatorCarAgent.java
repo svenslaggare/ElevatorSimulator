@@ -20,8 +20,8 @@ public class ElevatorCarAgent extends Agent<ElevatorSystemEnvironment> {
 	public enum Action {
 		NONE,
 //		CONTINUE,
-//		STOP_AT_NEXT,
-//		MOVE_UP,
+		STOP_AT_NEXT,
+		MOVE_UP,
 		MOVE_DOWN
 	}
 	
@@ -33,6 +33,8 @@ public class ElevatorCarAgent extends Agent<ElevatorSystemEnvironment> {
 	private ElevatorCarState currentState;
 	private ElevatorCarState prevState;
 	private EGreedyQLearning<ElevatorCarState> learning;
+	
+	private int[] actionDistribution = new int[Action.values().length];
 	
 	/**
 	 * Creates a new elevator system agent
@@ -53,6 +55,17 @@ public class ElevatorCarAgent extends Agent<ElevatorSystemEnvironment> {
 		return this.elevatorCar;
 	}
 	
+	/**
+	 * Returns the action distribution
+	 */
+	public int[] getActionDistribution() {
+		return actionDistribution;
+	}
+
+	public void setActionDistribution(int[] actionDistribution) {
+		this.actionDistribution = actionDistribution;
+	}
+
 	@Override
 	public void initialise() {
 		this.learning = new EGreedyQLearning<>(this.config);
@@ -76,6 +89,10 @@ public class ElevatorCarAgent extends Agent<ElevatorSystemEnvironment> {
 		
 		// perceive the reset state
 		this.perceive();
+		
+		for (int i = 0; i < this.actionDistribution.length; i++) {
+			this.actionDistribution[i] = 0;
+		}
 	}
 
 	@Override
@@ -99,11 +116,12 @@ public class ElevatorCarAgent extends Agent<ElevatorSystemEnvironment> {
 
 	@Override
 	protected void reason(int time) {
-		this.action = Action.values()[learning.select(this.currentState)];
+		this.action = Action.values()[this.learning.select(this.currentState)];
 	}
 
 	@Override
 	protected void act() {
 		this.env_.performAction(this, this.action.ordinal());
+		this.actionDistribution[this.action.ordinal()]++;
 	}
 }

@@ -21,7 +21,7 @@ public class Simulator {
 	
 	private long passengerId = 0;
 	
-	private final boolean enableLog = true;
+	private final boolean enableLog = false;
 	private final boolean debugMode = true;
 	
 	/**
@@ -257,16 +257,16 @@ public class Simulator {
 		//arrivalRates[0] = new TrafficProfile.Interval(0.12, 1.0, 0.0);
 		//arrivalRates[0] = new TrafficProfile.Interval(0.03, 0.45, 0.45);
 //		arrivalRates[0] = new TrafficProfile.Interval(0.03, 0.1, 0.9);
-		arrivalRates[0] = new TrafficProfile.Interval(0.03, 1, 0.0);
-//		arrivalRates[0] = new TrafficProfile.Interval(0.06, 0.45, 0.45);
+//		arrivalRates[0] = new TrafficProfile.Interval(0.03, 1, 0.0);
+		arrivalRates[0] = new TrafficProfile.Interval(0.01, 0.45, 0.45);
 				
 		SchedulerCreator creator = new SchedulerCreator() {		
 			@Override
 			public SchedulingAlgorithm createScheduler(Building building) {
-//				return new CollectiveControl();
+				return new CollectiveControl();
 				//return new Zoning(building.getElevatorCars().length, building);
 //				return new LongestQueueFirst();
-				return new RoundRobin(building, true);
+//				return new RoundRobin(building, true);
 			}
 		};
 		
@@ -276,7 +276,7 @@ public class Simulator {
 				ElevatorCarConfiguration.defaultConfiguration(),
 				floors,
 				new TrafficProfile(arrivalRates)),
-			new SimulatorSettings(100, 3),
+			new SimulatorSettings(8640, 10),
 			creator);
 		
 		simulator.run();

@@ -37,7 +37,8 @@ public class RISimulator {
 		};
 		
 		TrafficProfile.Interval[] arrivalRates = new TrafficProfile.Interval[1];
-		arrivalRates[0] = new TrafficProfile.Interval(0.005, 1, 0.0);
+//		arrivalRates[0] = new TrafficProfile.Interval(0.01, 0.45, 0.45);
+		arrivalRates[0] = new TrafficProfile.Interval(0.01, 1.0, 0);
 		
 		SchedulerCreator creator = new SchedulerCreator() {		
 			@Override
@@ -67,7 +68,7 @@ public class RISimulator {
 				ElevatorCarConfiguration.defaultConfiguration(),
 				floors,
 				new TrafficProfile(arrivalRates)),
-			new SimulatorSettings(250, 4),
+			new SimulatorSettings(8000, 0.4),
 			creator);
 	    
 	    // Obtain from the configuration how to run the experiment
@@ -105,8 +106,6 @@ public class RISimulator {
 	        // Output where we are up to
 	        System.out.println("Beginning run #" + runNo);
 	        
-	        double prevReward = 0;
-	        
 	        for (int episodeNo = 0; episodeNo < maxEpisodes; episodeNo++) {
 	            // Reset the environment
 	            env.reset(episodeNo);
@@ -119,13 +118,13 @@ public class RISimulator {
 	            
 	            System.out.println(
 	            	"\tRun #" + (runNo + 1) + "\tEpisode #" + (episodeNo + 1)
-	            	+ " Reward: " + env.totalReward() + " Delta: " + (env.totalReward() - prevReward));
+	            	+ " Reward: " + env.totalReward() + " Average SWT: " + simulator.getStats().averageSquaredWaitTime() + "s");
 	            
-	            for (ElevatorCar elevator : simulator.getBuilding().getElevatorCars()) {
-	            	System.out.println("\t" + elevator.getFloor());
+	            for (ElevatorCarAgent agent : agents) {
+	            	for (int i = 0; i < agent.getActionDistribution().length; i++) {
+	            		System.out.println("\t" + ElevatorCarAgent.Action.values()[i] + ": " + agent.getActionDistribution()[i]);
+	            	}
 	            }
-	            
-	            prevReward = env.totalReward();
 	        }
 	    }
 
