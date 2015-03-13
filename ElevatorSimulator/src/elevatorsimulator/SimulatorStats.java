@@ -23,6 +23,64 @@ public class SimulatorStats {
 	private long numWaitsOver60s;
 	
 	private final ElevatorCar[] elevatorCars;
+		
+	private SimulatorStatsInterval currentInterval = new SimulatorStatsInterval();
+	
+	/**
+	 * Contains stats for the last interval
+	 * @author Anton Jansson
+	 *
+	 */
+	public static class SimulatorStatsInterval {
+		private int numUp;
+		private int numDown;
+		private int numInterfloors;
+		
+		private double totalSquaredWaitTime;
+		private long numExists;
+		
+		/**
+		 * Creates a new interval
+		 */
+		public SimulatorStatsInterval() {
+
+		}
+		
+		/**
+		 * Returns the number of up passengers
+		 */
+		public int getNumUp() {
+			return numUp;
+		}
+
+		/**
+		 * Returns the number of down passengers
+		 */
+		public int getNumDown() {
+			return numDown;
+		}
+
+		/**
+		 * Returns the number of interfloors passengers
+		 */
+		public int getNumInterfloor() {
+			return numInterfloors;
+		}
+		
+		/**
+		 * Returns the total squared wait time
+		 */
+		public double getTotalSquaredWaitTime() {
+			return totalSquaredWaitTime;
+		}
+
+		/**
+		 * Returns the number of exits
+		 */
+		public long getNumExists() {
+			return numExists;
+		}				
+	}
 	
 	/**
 	 * Holds statistics for the simulator
@@ -48,14 +106,17 @@ public class SimulatorStats {
 		
 		if (passenger.getArrivalFloor() != 0 && passenger.getDestinationFloor() != 0) {
 			this.numInterfloors++;
+			this.currentInterval.numInterfloors++;
 		}
 		
 		if (passenger.getArrivalFloor() == 0) {
 			this.numUp++;
+			this.currentInterval.numUp++;
 		}
 		
 		if (passenger.getDestinationFloor() == 0) {
 			this.numDown++;
+			this.currentInterval.numDown++;
 		}
 	}
 	
@@ -64,11 +125,14 @@ public class SimulatorStats {
 	 */
 	public void passengerExited(Passenger passenger) {
 		this.numExists++;
+		this.currentInterval.numExists++;
 		
 		long waitTime = passenger.waitTime(this.clock);
 		this.totalWaitTime += waitTime;
+		
 		double waitTimeSec = this.clock.asSecond(waitTime);
 		this.totalSquaredWaitTime += waitTimeSec * waitTimeSec;
+		this.currentInterval.totalSquaredWaitTime += waitTimeSec * waitTimeSec;
 		
 		long rideTime = passenger.rideTime(this.clock);
 		this.totalRideTime += rideTime;
@@ -107,6 +171,13 @@ public class SimulatorStats {
 	}
 	
 	/**
+	 * Returns the current interval
+	 */
+	public SimulatorStatsInterval getInterval() {
+		return this.currentInterval;
+	}
+		
+	/**
 	 * Prints the statistics
 	 */
 	public void printStats() {
@@ -123,26 +194,34 @@ public class SimulatorStats {
 		System.out.println("Number of down travels: " + this.numDown);
 		System.out.println("Number of interfloor travels: " + this.numInterfloors);
 		
-		System.out.println("----Floor arrivals----");
-		for (int floor = 0; floor < this.passengerFloorArrivals.length; floor++) {
-			System.out.println(floor + ": " + this.passengerFloorArrivals[floor]);
-		}
-		
-		System.out.println("----Floor exits----");
-		for (int floor = 0; floor < this.passengerFloorExits.length; floor++) {
-			System.out.println(floor + ": " + this.passengerFloorExits[floor]);
-		}
-		
-		System.out.println("----Elevators----");
-		for (ElevatorCar elevator : this.elevatorCars) {
-			System.out.println(elevator.getId() + ": " + elevator.getNumPassengers());
-		}
+//		System.out.println("----Floor arrivals----");
+//		for (int floor = 0; floor < this.passengerFloorArrivals.length; floor++) {
+//			System.out.println(floor + ": " + this.passengerFloorArrivals[floor]);
+//		}
+//		
+//		System.out.println("----Floor exits----");
+//		for (int floor = 0; floor < this.passengerFloorExits.length; floor++) {
+//			System.out.println(floor + ": " + this.passengerFloorExits[floor]);
+//		}
+//		
+//		System.out.println("----Elevators----");
+//		for (ElevatorCar elevator : this.elevatorCars) {
+//			System.out.println(elevator.getId() + ": " + elevator.getNumPassengers());
+//		}
+	}
+	
+	/**
+	 * Resets the interval
+	 */
+	public void resetInterval() {
+		this.currentInterval = new SimulatorStatsInterval();
 	}
 	
 	/**
 	 * Resets the stats
 	 */
 	public void reset() {
+		this.currentInterval = new SimulatorStatsInterval();
 		this.numGenerated = 0;
 		this.numExists = 0;
 		

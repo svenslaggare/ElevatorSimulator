@@ -27,6 +27,13 @@ public class ControlSystem {
 	}
 	
 	/**
+	 * Returns the scheduler
+	 */
+	public SchedulingAlgorithm getScheduler() {
+		return this.scheduler;
+	}
+	
+	/**
 	 * Returns the name of the scheduler
 	 */
 	public String getSchedulerName() {

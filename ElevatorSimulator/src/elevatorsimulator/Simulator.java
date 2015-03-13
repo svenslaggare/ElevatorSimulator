@@ -11,13 +11,12 @@ import elevatorsimulator.schedulers.*;
 public class Simulator {
 	private final SimulatorSettings settings;
 	private final SimulatorClock clock;
-	private Random random = new Random(1337);
+	private final long randSeed = System.currentTimeMillis();
+	private Random random;
 	private final SimulatorStats stats;
 	
 	private final Building building;
 	private final ControlSystem controlSystem;
-	
-	private long simulationStartTime = System.currentTimeMillis();	
 	
 	private long passengerId = 0;
 	
@@ -36,6 +35,7 @@ public class Simulator {
 		this.building = scenario.createBuilding();
 		this.controlSystem = new ControlSystem(this, schedulerCreator.createScheduler(this.building));
 		this.stats = new SimulatorStats(this);
+		this.random = new Random(this.randSeed);
 	}
 	
 	/**
@@ -135,7 +135,8 @@ public class Simulator {
 	 * Indicates if new arrivals can be generated
 	 */
 	public boolean canGenerateArrivals() {
-		return (System.currentTimeMillis() - this.simulationStartTime) < this.settings.getSimulationTimeInSec() * 1000;
+//		return (System.currentTimeMillis() - this.simulationStartTime) < this.settings.getSimulationTimeInSec() * 1000;
+		return this.clock.simulatedTime() < 2 * 60 * 60 * SimulatorClock.NANOSECONDS_PER_SECOND;
 	}
 			
 	/**
@@ -168,14 +169,12 @@ public class Simulator {
 	 * Runs the simulation
 	 */
 	public void run() {
-		long prevStep = clock.timeNow();
-		
 		System.out.println(new Date() + ": Simulation started.");
 		
 		while (true) {
-			long timeNowNano = System.nanoTime();
-			moveForward(this.clock.durationFromRealTime(timeNowNano - prevStep));
-			prevStep = timeNowNano;
+			double step = 0.01;
+			moveForward((long)(step * SimulatorClock.NANOSECONDS_PER_SECOND));
+			clock.step(step);
 			
 			if (!this.canGenerateArrivals()) {
 				if (this.floorsEmpty() && this.elevatorsEmpty()) {
@@ -189,14 +188,12 @@ public class Simulator {
 		this.stats.printStats();		
 	}
 	
-	private long prevStep;
 	private boolean run = false;
 	
 	/**
 	 * Starts the simulator
 	 */
 	public void start() {
-		this.prevStep = this.clock.timeNow();
 		this.run = true;
 	}
 	
@@ -204,12 +201,11 @@ public class Simulator {
 	 * Resets the simulator
 	 */
 	public void reset() {
-		this.simulationStartTime = System.currentTimeMillis();
 		this.controlSystem.reset();
 		this.building.reset();
 		this.clock.reset();
 		this.stats.reset();
-		this.random = new Random(1337);
+		this.random = new Random(this.randSeed);
 	}
 	
 	/**
@@ -218,23 +214,21 @@ public class Simulator {
 	 */
 	public boolean advance() {
 		if (this.run) {
-			long timeNowNano = System.nanoTime();
-			moveForward(this.clock.durationFromRealTime(timeNowNano - this.prevStep));
-			this.prevStep = timeNowNano;
+			double step = 0.01;
+			moveForward((long)(step * SimulatorClock.NANOSECONDS_PER_SECOND));
+			this.clock.step(step);
 			
-			if (!this.canGenerateArrivals()) {
-				this.run = false;
-//				if (this.floorsEmpty() && this.elevatorsEmpty()) {
-//					break;
-//				}
-				
-				return false;
-			} else {
-				return true;
+			if (!this.canGenerateArrivals()) {				
+				if (this.floorsEmpty() && this.elevatorsEmpty()) {
+					this.run = false;				
+					return false;
+				}
 			}
 		} else {
 			return false;
 		}
+
+		return true;
 	}
 	
 	/**
@@ -276,7 +270,7 @@ public class Simulator {
 				ElevatorCarConfiguration.defaultConfiguration(),
 				floors,
 				new TrafficProfile(arrivalRates)),
-			new SimulatorSettings(8640, 10),
+			new SimulatorSettings(100, 2),
 			creator);
 		
 		simulator.run();

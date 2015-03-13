@@ -62,10 +62,6 @@ public class ElevatorCarAgent extends Agent<ElevatorSystemEnvironment> {
 		return actionDistribution;
 	}
 
-	public void setActionDistribution(int[] actionDistribution) {
-		this.actionDistribution = actionDistribution;
-	}
-
 	@Override
 	public void initialise() {
 		this.learning = new EGreedyQLearning<>(this.config);

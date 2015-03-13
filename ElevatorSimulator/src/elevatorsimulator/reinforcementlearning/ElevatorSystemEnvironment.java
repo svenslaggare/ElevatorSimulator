@@ -47,9 +47,9 @@ public class ElevatorSystemEnvironment implements Environment<ElevatorCarState, 
 			
 			ElevatorCar elevatorCar = simulator.getBuilding().getElevatorCars()[i];
 			
-			agentTuple.agent_ = null;
-			agentTuple.state_ = new ElevatorCarState(simulator.getBuilding(), elevatorCar);
-			agentTuple.next_ = new ElevatorCarState(simulator.getBuilding(), elevatorCar);
+			agentTuple.agent = null;
+			agentTuple.state = new ElevatorCarState(simulator.getBuilding(), elevatorCar);
+			agentTuple.next = new ElevatorCarState(simulator.getBuilding(), elevatorCar);
 			this.tuples[i] = agentTuple;
 		}
 	}
@@ -58,11 +58,11 @@ public class ElevatorSystemEnvironment implements Environment<ElevatorCarState, 
 	public void reset(int episodeNo) {
 		//Reset the environment
 		for (int i = 0; i < this.numAgents; i++) {
-			ElevatorCar elevatorCar = this.tuples[i].agent_.getElevatorCar();
-			this.tuples[i].state_ = new ElevatorCarState(simulator.getBuilding(), elevatorCar);
-			this.tuples[i].next_ = new ElevatorCarState(simulator.getBuilding(), elevatorCar);
-			this.tuples[i].sumReward_ = 0;
-			this.tuples[i].agent_.reset(episodeNo);
+			ElevatorCar elevatorCar = this.tuples[i].agent.getElevatorCar();
+			this.tuples[i].state = new ElevatorCarState(simulator.getBuilding(), elevatorCar);
+			this.tuples[i].next = new ElevatorCarState(simulator.getBuilding(), elevatorCar);
+			this.tuples[i].sumReward = 0;
+			this.tuples[i].agent.reset(episodeNo);
 		}
 		
 		this.time = 0;
@@ -71,9 +71,9 @@ public class ElevatorSystemEnvironment implements Environment<ElevatorCarState, 
 	@Override
 	public boolean add(ElevatorCarAgent agent) {
 		for (int i = 0; i < this.numAgents; i++) {
-			if (this.tuples[i].agent_ == null) {
-				this.tuples[i].agent_ = agent;
-				this.tuples[i].agent_.add(this);
+			if (this.tuples[i].agent == null) {
+				this.tuples[i].agent = agent;
+				this.tuples[i].agent.add(this);
 				return true;
 			}
 		}
@@ -84,8 +84,8 @@ public class ElevatorSystemEnvironment implements Environment<ElevatorCarState, 
 	@Override
 	public ElevatorCarState getState(ElevatorCarAgent agent) {
 		for (int i = 0; i < this.numAgents; i++) {
-			if (this.tuples[i].agent_ == agent) {
-				return this.tuples[i].state_;
+			if (this.tuples[i].agent == agent) {
+				return this.tuples[i].state;
 			}
 		}
 		
@@ -105,7 +105,7 @@ public class ElevatorSystemEnvironment implements Environment<ElevatorCarState, 
 	@Override
 	public void performAction(ElevatorCarAgent agent, int actionNum) {
 		for (int i = 0; i < this.tuples.length; i++) {
-			if (this.tuples[i].agent_ == agent) {
+			if (this.tuples[i].agent == agent) {
 				ElevatorCarAgent.Action action = ElevatorSystemEnvironment.actions[actionNum];
 				ElevatorCar elevatorCar = agent.getElevatorCar();
 				elevatorsimulator.Floor[] floors = this.simulator.getBuilding().getFloors();
@@ -187,24 +187,24 @@ public class ElevatorSystemEnvironment implements Environment<ElevatorCarState, 
 			reward += waitTimeSec * waitTimeSec;
 		}
 		
-		return -reward;
+		return -reward * 1E-9;
 	}
 	
 	@Override
 	public void incrementTime() {
         // Let each agent choose what to do
         for(int i = 0; i < this.numAgents; i++) {
-            this.tuples[i].agent_.step(this.time);
+            this.tuples[i].agent.step(this.time);
             
-			this.tuples[i].next_.updateState(this.simulator.getBuilding(), this.tuples[i].agent_.getElevatorCar());
-            this.tuples[i].state_.set(this.tuples[i].next_);
+			this.tuples[i].next.updateState(this.simulator.getBuilding(), this.tuples[i].agent.getElevatorCar());
+            this.tuples[i].state.set(this.tuples[i].next);
 //			this.tuples[i].next_.set(this.tuples[i].state_);  
         }
         
         // Update
         for(int i = 0; i < this.numAgents; i++) {
         	double reward = this.calculateReward();
-        	this.tuples[i].agent_.update(reward, false);
+        	this.tuples[i].agent.update(reward, false);
         	this.tuples[i].addReward(reward);
         }
         
@@ -213,13 +213,12 @@ public class ElevatorSystemEnvironment implements Environment<ElevatorCarState, 
 	
 	/**
 	 * Returns the total reward
-	 * @return
 	 */
 	public double totalReward() {
 		double total = 0;
 		
 		for (int i = 0; i < this.numAgents; i++) {
-			total += this.tuples[i].sumReward_;
+			total += this.tuples[i].sumReward;
 		}
 		
 		return total;
