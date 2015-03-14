@@ -1,5 +1,7 @@
 package elevatorsimulator.reinforcementlearning2;
 
+import java.util.Map;
+
 import marl.agents.Agent;
 import marl.agents.learning.qlearning.EGreedyQLearning;
 import marl.agents.learning.sarsa.EGreedySarsa;
@@ -43,6 +45,13 @@ public class ElevatorSystemAgent extends Agent<ElevatorSystemEnvironment> {
 	 */
 	public int getStateSpace() {
 		return this.learning.table().size();
+	}
+	
+	/**
+	 * Returns the state usage
+	 */
+	public Map<Integer, Integer> stateUsage() {
+		return this.learning.table().stateUsage();
 	}
 	
 	@Override
@@ -99,6 +108,12 @@ public class ElevatorSystemAgent extends Agent<ElevatorSystemEnvironment> {
 	protected void reason(int time) {
 	    // use E-greedy to select the next action
 	    this.action = this.learning.select(this.currentState);
+	    
+	    if (this.action == 1) {
+	    	this.action = 1;
+	    } else {
+	    	this.action = this.action * 1;
+	    }
 	}
 
 	@Override

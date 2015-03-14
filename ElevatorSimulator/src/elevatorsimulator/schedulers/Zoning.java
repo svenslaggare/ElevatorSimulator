@@ -71,7 +71,7 @@ public class Zoning implements SchedulingAlgorithm {
 			
 			totalSpill += spillPerFloor;
 			int minFloor = handledFloors;
-			int maxFloor = (zone + 1) * floorsPerZone;
+			int maxFloor = handledFloors + floorsPerZone - 1;
 			
 			if (totalSpill >= 1.0) {
 				totalSpill -= 1.0;
@@ -84,11 +84,11 @@ public class Zoning implements SchedulingAlgorithm {
 				}
 			}
 								
-			for (int floor = minFloor; floor < maxFloor; floor++) {
+			for (int floor = minFloor; floor <= maxFloor; floor++) {
 				zoneFloors.add(building.getFloors()[floor]);
 			}		
-								
-			handledFloors += maxFloor - minFloor;
+					
+			handledFloors += maxFloor - minFloor + 1;
 			this.zones.add(new Zone(zoneFloors, zoneElevators));
 		} 
 	}
@@ -127,7 +127,7 @@ public class Zoning implements SchedulingAlgorithm {
 	}
 
 	@Override
-	public void update(Simulator simulator) {
+	public void update(Simulator simulator) {		
 		for (Passenger passenger : simulator.getControlSystem().getHallQueue()) {
 			for (ElevatorCar elevator : this.getZone(passenger.getArrivalFloor()).elevatorCars) {
 				//Check if to dispatch the elevator

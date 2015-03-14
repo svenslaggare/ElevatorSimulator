@@ -322,6 +322,12 @@ public class ElevatorCar {
 		}
 	}
 	
+	/**
+	 * Indicates if the elevator can pickup one passenger
+	 */
+	public boolean canPickupPassenger() {
+		return this.canPickupPassenger(1);
+	}
 
 	/**
 	 * Indicates if the elevator can pickup the given passenger

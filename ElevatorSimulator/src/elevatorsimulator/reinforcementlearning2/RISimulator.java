@@ -13,7 +13,6 @@ import elevatorsimulator.Simulator;
 import elevatorsimulator.SimulatorClock;
 import elevatorsimulator.SimulatorSettings;
 import elevatorsimulator.TrafficProfile;
-import elevatorsimulator.reinforcementlearning.ElevatorCarAgent;
 import elevatorsimulator.schedulers.CollectiveControl;
 import elevatorsimulator.schedulers.MultiScheduler;
 import elevatorsimulator.schedulers.Zoning;
@@ -43,7 +42,7 @@ public class RISimulator {
 		
 		TrafficProfile.Interval[] arrivalRates = new TrafficProfile.Interval[1];
 //		arrivalRates[0] = new TrafficProfile.Interval(0.01, 0.45, 0.45);
-		arrivalRates[0] = new TrafficProfile.Interval(0.01, 1, 0.0);
+		arrivalRates[0] = new TrafficProfile.Interval(0.03, 1, 0);
 		
 		SchedulerCreator creator = new SchedulerCreator() {		
 			@Override
@@ -69,7 +68,7 @@ public class RISimulator {
 	    int maxEpisodes = config.getInt("max_episodes");
 	    	    
 	    // Create the environment and agent
-	    ElevatorSystemEnvironment env = new ElevatorSystemEnvironment(config, simulator);
+	    ElevatorSystemEnvironment env = new ElevatorSystemEnvironment(simulator);
 	    
 	    ElevatorSystemAgent agent = new ElevatorSystemAgent(config);
 
@@ -95,7 +94,7 @@ public class RISimulator {
 	            long lastInterval = 0;
 	            SimulatorClock clock = simulator.getClock();
 	            while (simulator.advance()) {
-	            	if (clock.elapsedSinceRealTime(lastInterval) >= clock.secondsToTime(10 * 60)) {
+	            	if (clock.elapsedSinceRealTime(lastInterval) >= clock.secondsToTime(3 * 60)) {
 		            	env.incrementTime();
 		            	simulator.getStats().resetInterval();
 		            	lastInterval = clock.timeNow();

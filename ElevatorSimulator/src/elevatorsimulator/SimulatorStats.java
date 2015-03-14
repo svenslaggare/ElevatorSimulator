@@ -6,6 +6,7 @@ package elevatorsimulator;
  */
 public class SimulatorStats {
 	private final SimulatorClock clock;
+	private final Simulator simulator;
 	private final long numResidents;
 	private long numGenerated;
 	private long numExists;
@@ -24,7 +25,8 @@ public class SimulatorStats {
 	
 	private final ElevatorCar[] elevatorCars;
 		
-	private SimulatorStatsInterval currentInterval = new SimulatorStatsInterval();
+	private SimulatorStatsInterval currentInterval = new SimulatorStatsInterval(0);
+	private int intervalNum = 0;
 	
 	/**
 	 * Contains stats for the last interval
@@ -32,6 +34,7 @@ public class SimulatorStats {
 	 *
 	 */
 	public static class SimulatorStatsInterval {
+		private int num;
 		private int numUp;
 		private int numDown;
 		private int numInterfloors;
@@ -42,8 +45,15 @@ public class SimulatorStats {
 		/**
 		 * Creates a new interval
 		 */
-		public SimulatorStatsInterval() {
-
+		public SimulatorStatsInterval(int num) {
+			this.num = num;
+		}
+		
+		/**
+		 * Returns the interval number
+		 */
+		public int getNum() {
+			return this.num;
 		}
 		
 		/**
@@ -87,6 +97,7 @@ public class SimulatorStats {
 	 * @param simulator The simulator
 	 */
 	public SimulatorStats(Simulator simulator) {
+		this.simulator = simulator;
 		this.clock = simulator.getClock();
 		int numFloors = simulator.getBuilding().getFloors().length;
 		this.numResidents = simulator.getBuilding().getTotalNumberOfResidents();
@@ -139,6 +150,7 @@ public class SimulatorStats {
 		
 		if (waitTime > clock.secondsToTime(60)) {
 			this.numWaitsOver60s++;
+			this.simulator.log(passenger.getArrivalFloor() + "->" + passenger.getDestinationFloor());
 		}
 	}
 	
@@ -194,34 +206,35 @@ public class SimulatorStats {
 		System.out.println("Number of down travels: " + this.numDown);
 		System.out.println("Number of interfloor travels: " + this.numInterfloors);
 		
-//		System.out.println("----Floor arrivals----");
-//		for (int floor = 0; floor < this.passengerFloorArrivals.length; floor++) {
-//			System.out.println(floor + ": " + this.passengerFloorArrivals[floor]);
-//		}
-//		
-//		System.out.println("----Floor exits----");
-//		for (int floor = 0; floor < this.passengerFloorExits.length; floor++) {
-//			System.out.println(floor + ": " + this.passengerFloorExits[floor]);
-//		}
-//		
-//		System.out.println("----Elevators----");
-//		for (ElevatorCar elevator : this.elevatorCars) {
-//			System.out.println(elevator.getId() + ": " + elevator.getNumPassengers());
-//		}
+		System.out.println("----Floor arrivals----");
+		for (int floor = 0; floor < this.passengerFloorArrivals.length; floor++) {
+			System.out.println(floor + ": " + this.passengerFloorArrivals[floor]);
+		}
+		
+		System.out.println("----Floor exits----");
+		for (int floor = 0; floor < this.passengerFloorExits.length; floor++) {
+			System.out.println(floor + ": " + this.passengerFloorExits[floor]);
+		}
+		
+		System.out.println("----Elevators----");
+		for (ElevatorCar elevator : this.elevatorCars) {
+			System.out.println(elevator.getId() + ": " + elevator.getNumPassengers());
+		}
 	}
 	
 	/**
 	 * Resets the interval
 	 */
 	public void resetInterval() {
-		this.currentInterval = new SimulatorStatsInterval();
+		this.currentInterval = new SimulatorStatsInterval(this.intervalNum++);
 	}
 	
 	/**
 	 * Resets the stats
 	 */
 	public void reset() {
-		this.currentInterval = new SimulatorStatsInterval();
+		this.intervalNum = 0;
+		this.currentInterval = new SimulatorStatsInterval(this.intervalNum++);
 		this.numGenerated = 0;
 		this.numExists = 0;
 		

@@ -11,7 +11,8 @@ import elevatorsimulator.schedulers.*;
 public class Simulator {
 	private final SimulatorSettings settings;
 	private final SimulatorClock clock;
-	private final long randSeed = System.currentTimeMillis();
+//	private final long randSeed = System.currentTimeMillis();
+	private final long randSeed = 1337;
 	private Random random;
 	private final SimulatorStats stats;
 	
@@ -21,7 +22,7 @@ public class Simulator {
 	private long passengerId = 0;
 	
 	private final boolean enableLog = false;
-	private final boolean debugMode = true;
+	private final boolean debugMode = false;
 	
 	/**
 	 * Creates a new simulator
@@ -136,7 +137,7 @@ public class Simulator {
 	 */
 	public boolean canGenerateArrivals() {
 //		return (System.currentTimeMillis() - this.simulationStartTime) < this.settings.getSimulationTimeInSec() * 1000;
-		return this.clock.simulatedTime() < 2 * 60 * 60 * SimulatorClock.NANOSECONDS_PER_SECOND;
+		return this.clock.simulatedTime() < 1 * 60 * 60 * SimulatorClock.NANOSECONDS_PER_SECOND;
 	}
 			
 	/**
@@ -189,7 +190,7 @@ public class Simulator {
 	}
 	
 	private boolean run = false;
-	
+		
 	/**
 	 * Starts the simulator
 	 */
@@ -242,25 +243,22 @@ public class Simulator {
 		int[] floors = new int[] {
 			0, 80, 70, 90, 80, 115, 120, 90, 80, 90, 80, 100, 80, 80, 50
 		};
-			
-//		TrafficProfile.Interval[] arrivalRates = new TrafficProfile.Interval[2];
-//		arrivalRates[0] = new TrafficProfile.Interval(20.0, 0.9, 0.1);
-//		arrivalRates[1] = new TrafficProfile.Interval(20.0, 0.2, 0.7);
 		
 		TrafficProfile.Interval[] arrivalRates = new TrafficProfile.Interval[1];
 		//arrivalRates[0] = new TrafficProfile.Interval(0.12, 1.0, 0.0);
 		//arrivalRates[0] = new TrafficProfile.Interval(0.03, 0.45, 0.45);
 //		arrivalRates[0] = new TrafficProfile.Interval(0.03, 0.1, 0.9);
-//		arrivalRates[0] = new TrafficProfile.Interval(0.03, 1, 0.0);
-		arrivalRates[0] = new TrafficProfile.Interval(0.01, 0.45, 0.45);
+//		arrivalRates[0] = new TrafficProfile.Interval(0.06, 0, 1.0);
+		arrivalRates[0] = new TrafficProfile.Interval(0.03, 1, 0);
+//		arrivalRates[0] = new TrafficProfile.Interval(0.01, 0.45, 0.45);
 				
 		SchedulerCreator creator = new SchedulerCreator() {		
 			@Override
 			public SchedulingAlgorithm createScheduler(Building building) {
 				return new CollectiveControl();
-				//return new Zoning(building.getElevatorCars().length, building);
+//				return new Zoning(building.getElevatorCars().length, building);
 //				return new LongestQueueFirst();
-//				return new RoundRobin(building, true);
+//				return new RoundRobin(building, false);
 			}
 		};
 		

@@ -203,7 +203,7 @@ public class Floor {
 			simulator.getControlSystem().handleHallCall(newPassenger);
 			
 			simulator.log(
-				"Generated a new passenger at floor "
+				"Generated passenger #" + newPassenger.getId() + " at floor "
 				+ this.floorNumber + " with the destination: "
 				+ newPassenger.getDestinationFloor() + ".");
 			

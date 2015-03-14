@@ -4,21 +4,17 @@ import elevatorsimulator.Simulator;
 import elevatorsimulator.SimulatorStats.SimulatorStatsInterval;
 import elevatorsimulator.schedulers.MultiScheduler;
 import marl.environments.Environment;
-import marl.utility.Config;
 
 public class ElevatorSystemEnvironment implements Environment<ElevatorSystemState, ElevatorSystemAgent> {
 	private int time;
-	private Config config;
 	private Tuple<ElevatorSystemEnvironment, ElevatorSystemState, ElevatorSystemAgent> tuple;
 	private final Simulator simulator;
 	
 	/**
 	 * Creates a new elevator system environment
-	 * @param config The config
 	 * @param simulator The simulator
 	 */
-	public ElevatorSystemEnvironment(Config config, Simulator simulator) {
-		this.config = config;
+	public ElevatorSystemEnvironment(Simulator simulator) {
 		this.simulator = simulator;
 	}
 	
@@ -79,12 +75,8 @@ public class ElevatorSystemEnvironment implements Environment<ElevatorSystemStat
 		this.tuple.state.update(this.simulator.getStats().getInterval());
 		double reward = calculateReward();
 		this.tuple.agent.update(reward, false);
-		this.tuple.addReward(reward);
-		
+		this.tuple.addReward(reward);		
 		this.tuple.agent.step(this.time);
-		
-//		this.tuple.state.set(this.tuple.next);
-				
 		this.time++;
 	}
 	

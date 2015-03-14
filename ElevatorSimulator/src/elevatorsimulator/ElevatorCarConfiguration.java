@@ -11,7 +11,7 @@ public class ElevatorCarConfiguration {
 	private final double startTime;
 	private final double doorTime;
 	
-	private static final ElevatorCarConfiguration DEFAULT_CONFIGURATION = new ElevatorCarConfiguration(1, 1.5, 2.6, 2.6, 1);
+	private static final ElevatorCarConfiguration DEFAULT_CONFIGURATION = new ElevatorCarConfiguration(8, 1.5, 2.6, 2.6, 1);
 	
 	/**
 	 * Creates a new elevator car configuration
