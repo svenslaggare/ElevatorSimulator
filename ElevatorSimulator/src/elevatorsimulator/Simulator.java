@@ -11,9 +11,11 @@ import elevatorsimulator.schedulers.*;
 public class Simulator {
 	private final SimulatorSettings settings;
 	private final SimulatorClock clock;
+	
 //	private final long randSeed = System.currentTimeMillis();
 	private final long randSeed = 1337;
 	private Random random;
+	
 	private final SimulatorStats stats;
 	
 	private final Building building;
@@ -32,7 +34,7 @@ public class Simulator {
 	 */
 	public Simulator(Scenario scenario, SimulatorSettings settings, SchedulerCreator schedulerCreator) {
 		this.settings = settings;
-		this.clock = new SimulatorClock(settings.getSimulationSpeed());
+		this.clock = new SimulatorClock(settings.getTimeStep());
 		this.building = scenario.createBuilding();
 		this.controlSystem = new ControlSystem(this, schedulerCreator.createScheduler(this.building));
 		this.stats = new SimulatorStats(this);
@@ -89,7 +91,6 @@ public class Simulator {
 	 */
 	public void log(String line) {
 		if (enableLog) {
-//			System.out.println(new Date().toString() + ": " + line);
 			long simulatedTime = this.clock.elapsedSinceRealTime(0);
 			double numHours = simulatedTime / (60.0 * 60.0 * SimulatorClock.NANOSECONDS_PER_SECOND);
 			double numMin = 60 * (numHours - (int)numHours);
@@ -136,8 +137,7 @@ public class Simulator {
 	 * Indicates if new arrivals can be generated
 	 */
 	public boolean canGenerateArrivals() {
-//		return (System.currentTimeMillis() - this.simulationStartTime) < this.settings.getSimulationTimeInSec() * 1000;
-		return this.clock.simulatedTime() < 1 * 60 * 60 * SimulatorClock.NANOSECONDS_PER_SECOND;
+		return this.clock.simulatedTime() < this.settings.getSimulationTimeInSec() * SimulatorClock.NANOSECONDS_PER_SECOND;
 	}
 			
 	/**
@@ -173,9 +173,8 @@ public class Simulator {
 		System.out.println(new Date() + ": Simulation started.");
 		
 		while (true) {
-			double step = 0.01;
-			moveForward((long)(step * SimulatorClock.NANOSECONDS_PER_SECOND));
-			clock.step(step);
+			moveForward((long)(this.settings.getTimeStep() * SimulatorClock.NANOSECONDS_PER_SECOND));
+			clock.step();
 			
 			if (!this.canGenerateArrivals()) {
 				if (this.floorsEmpty() && this.elevatorsEmpty()) {
@@ -215,9 +214,8 @@ public class Simulator {
 	 */
 	public boolean advance() {
 		if (this.run) {
-			double step = 0.01;
-			moveForward((long)(step * SimulatorClock.NANOSECONDS_PER_SECOND));
-			this.clock.step(step);
+			moveForward((long)(this.settings.getTimeStep() * SimulatorClock.NANOSECONDS_PER_SECOND));
+			this.clock.step();
 			
 			if (!this.canGenerateArrivals()) {				
 				if (this.floorsEmpty() && this.elevatorsEmpty()) {
@@ -244,19 +242,21 @@ public class Simulator {
 			0, 80, 70, 90, 80, 115, 120, 90, 80, 90, 80, 100, 80, 80, 50
 		};
 		
+		TrafficProfile profile = TrafficProfiles.WEEK_DAY_PROFILE;
+		
 		TrafficProfile.Interval[] arrivalRates = new TrafficProfile.Interval[1];
 		//arrivalRates[0] = new TrafficProfile.Interval(0.12, 1.0, 0.0);
 		//arrivalRates[0] = new TrafficProfile.Interval(0.03, 0.45, 0.45);
 //		arrivalRates[0] = new TrafficProfile.Interval(0.03, 0.1, 0.9);
-//		arrivalRates[0] = new TrafficProfile.Interval(0.06, 0, 1.0);
-		arrivalRates[0] = new TrafficProfile.Interval(0.03, 1, 0);
-//		arrivalRates[0] = new TrafficProfile.Interval(0.01, 0.45, 0.45);
+//		arrivalRates[0] = new TrafficProfile.Interval(0.03, 0, 1.0);
+		arrivalRates[0] = new TrafficProfile.Interval(0.06, 1, 0);
+//		arrivalRates[0] = new TrafficProfile.Interval(0.03, 0.45, 0.45);
 				
 		SchedulerCreator creator = new SchedulerCreator() {		
 			@Override
 			public SchedulingAlgorithm createScheduler(Building building) {
-				return new CollectiveControl();
-//				return new Zoning(building.getElevatorCars().length, building);
+//				return new CollectiveControl();
+				return new Zoning(building.getElevatorCars().length, building);
 //				return new LongestQueueFirst();
 //				return new RoundRobin(building, false);
 			}
@@ -268,7 +268,8 @@ public class Simulator {
 				ElevatorCarConfiguration.defaultConfiguration(),
 				floors,
 				new TrafficProfile(arrivalRates)),
-			new SimulatorSettings(100, 2),
+//				profile),
+			new SimulatorSettings(0.01, 1 * 60 * 60),
 			creator);
 		
 		simulator.run();

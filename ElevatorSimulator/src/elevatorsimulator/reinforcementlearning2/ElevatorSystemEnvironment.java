@@ -1,6 +1,10 @@
 package elevatorsimulator.reinforcementlearning2;
 
+import java.util.Queue;
+
+import elevatorsimulator.Passenger;
 import elevatorsimulator.Simulator;
+import elevatorsimulator.SimulatorClock;
 import elevatorsimulator.SimulatorStats.SimulatorStatsInterval;
 import elevatorsimulator.schedulers.MultiScheduler;
 import marl.environments.Environment;
@@ -67,7 +71,36 @@ public class ElevatorSystemEnvironment implements Environment<ElevatorSystemStat
 	 */
 	private double calculateReward() {
 		SimulatorStatsInterval interval = this.simulator.getStats().getInterval();
+		if (interval.getNumExists() == 0) {
+			return Double.MIN_VALUE;
+		}
+		
 		return -interval.getTotalSquaredWaitTime() / interval.getNumExists();
+		
+//		double totalSquaredWaitTime = 0;
+//		SimulatorClock clock = this.simulator.getClock();
+//		
+//		Queue<Passenger> waitQueue = this.simulator.getControlSystem().getHallQueue();
+//		for (Passenger passenger : waitQueue) {
+//			double waitTimeSec = clock.asSecond(passenger.waitTime(this.simulator.getClock()));
+//			totalSquaredWaitTime += waitTimeSec * waitTimeSec;
+//		}
+//		
+//		if (totalSquaredWaitTime > 0) {
+//			totalSquaredWaitTime /= waitQueue.size();
+//		}
+//		
+//		return -(totalSquaredWaitTime + interval.getTotalSquaredWaitTime() / interval.getNumExists());
+	}
+	
+	/**
+	 * Rewards the last state
+	 */
+	public void rewardLastState() {
+		this.tuple.state.update(this.simulator.getStats().getInterval());
+		double reward = calculateReward();
+		this.tuple.agent.update(reward, false);
+		this.tuple.addReward(reward);		
 	}
 
 	@Override

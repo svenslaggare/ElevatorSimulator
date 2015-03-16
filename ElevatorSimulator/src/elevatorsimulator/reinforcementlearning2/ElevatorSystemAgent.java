@@ -1,8 +1,11 @@
 package elevatorsimulator.reinforcementlearning2;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import marl.agents.Agent;
+import marl.agents.learning.qlearning.BoltzmannQLearning;
 import marl.agents.learning.qlearning.EGreedyQLearning;
 import marl.agents.learning.sarsa.EGreedySarsa;
 import marl.utility.Config;
@@ -17,12 +20,15 @@ public class ElevatorSystemAgent extends Agent<ElevatorSystemEnvironment> {
 	private int action;
 	private ElevatorSystemState currentState;
 	private ElevatorSystemState prevState;
-	private EGreedySarsa<ElevatorSystemState> learning;
+	private EGreedyQLearning<ElevatorSystemState> learning;
+	
 	private int[] actionDistribution = new int[Action.values().length];
+	private final List<Action> actions = new ArrayList<Action>();
 	
 	public enum Action {
 		COLLECTIVE_CONTROL,
-		ZONING
+		ZONING,
+		ROUND_ROBIN
 	}
 	
 	/**
@@ -41,6 +47,13 @@ public class ElevatorSystemAgent extends Agent<ElevatorSystemEnvironment> {
 	}
 	
 	/**
+	 * Returns the action usage
+	 */
+	public List<Action> getActionUsage() {
+		return this.actions;
+	}
+	
+	/**
 	 * Returns the size of the state space
 	 */
 	public int getStateSpace() {
@@ -56,7 +69,7 @@ public class ElevatorSystemAgent extends Agent<ElevatorSystemEnvironment> {
 	
 	@Override
 	public void initialise() {
-		this.learning = new EGreedySarsa<>(this.config);
+		this.learning = new EGreedyQLearning<>(this.config);
 	}
 	
 	@Override
@@ -80,6 +93,8 @@ public class ElevatorSystemAgent extends Agent<ElevatorSystemEnvironment> {
 		for (int i = 0; i < this.actionDistribution.length; i++) {
 			this.actionDistribution[i] = 0;
 		}
+		
+		this.actions.clear();
 	}
 
 	@Override
@@ -101,7 +116,7 @@ public class ElevatorSystemAgent extends Agent<ElevatorSystemEnvironment> {
 		this.prevState.set(this.currentState);
 		
 	    // perceive the state
-		this.currentState.set(env_.getState(this));
+		this.currentState.set(environment.getState(this));
 	}
 
 	@Override
@@ -118,7 +133,8 @@ public class ElevatorSystemAgent extends Agent<ElevatorSystemEnvironment> {
 
 	@Override
 	protected void act() {
-		this.env_.performAction(this, this.action);
+		this.environment.performAction(this, this.action);
 		this.actionDistribution[this.action]++;
+		this.actions.add(Action.values()[this.action]);
 	}
 }

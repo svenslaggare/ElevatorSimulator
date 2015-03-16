@@ -107,7 +107,7 @@ public class ElevatorCarAgent extends Agent<ElevatorSystemEnvironment> {
 	@Override
 	protected void perceive() {
 		this.prevState.set(this.currentState);
-		this.currentState.set(this.env_.getState(this));
+		this.currentState.set(this.environment.getState(this));
 	}
 
 	@Override
@@ -117,7 +117,7 @@ public class ElevatorCarAgent extends Agent<ElevatorSystemEnvironment> {
 
 	@Override
 	protected void act() {
-		this.env_.performAction(this, this.action.ordinal());
+		this.environment.performAction(this, this.action.ordinal());
 		this.actionDistribution[this.action.ordinal()]++;
 	}
 }

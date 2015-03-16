@@ -6,34 +6,30 @@ package elevatorsimulator;
  *
  */
 public class SimulatorSettings {
-	private final double simulationSpeed;
+	private final double timeStep;
 	private final double simulationTimeInSec;
 	
 	/**
 	 * Creates new settings
-	 * @param simulationSpeed The simulation speed
+	 * @param timeStep The time step
 	 * @param simulationTimeInSec The simulation time in seconds
 	 */
-	public SimulatorSettings(double simulationSpeed, double simulationTimeInSec) {
-		if (simulationSpeed < 1.0) {
-			throw new IllegalArgumentException("simulationSpeed must be >= 1.0");
-		}
-		
-		this.simulationSpeed = simulationSpeed;
+	public SimulatorSettings(double timeStep, double simulationTimeInSec) {
+		this.timeStep = timeStep;
 		this.simulationTimeInSec = simulationTimeInSec;
 	}
-	
+
 	/**
-	 * Returns the simulation speed
+	 * Returns the time step (in seconds)
 	 */
-	public double getSimulationSpeed() {
-		return simulationSpeed;
+	public double getTimeStep() {
+		return timeStep;
 	}
-	
+
 	/**
-	 * Returns the simulation time in seconds
+	 * Returns the simulation time
 	 */
 	public double getSimulationTimeInSec() {
 		return simulationTimeInSec;
-	}	
+	}		
 }

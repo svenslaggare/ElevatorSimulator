@@ -24,6 +24,7 @@ public class SimulatorStats {
 	private long numWaitsOver60s;
 	
 	private final ElevatorCar[] elevatorCars;
+	private boolean printFloorsAndElevators = false;
 		
 	private SimulatorStatsInterval currentInterval = new SimulatorStatsInterval(0);
 	private int intervalNum = 0;
@@ -206,19 +207,21 @@ public class SimulatorStats {
 		System.out.println("Number of down travels: " + this.numDown);
 		System.out.println("Number of interfloor travels: " + this.numInterfloors);
 		
-		System.out.println("----Floor arrivals----");
-		for (int floor = 0; floor < this.passengerFloorArrivals.length; floor++) {
-			System.out.println(floor + ": " + this.passengerFloorArrivals[floor]);
-		}
-		
-		System.out.println("----Floor exits----");
-		for (int floor = 0; floor < this.passengerFloorExits.length; floor++) {
-			System.out.println(floor + ": " + this.passengerFloorExits[floor]);
-		}
-		
-		System.out.println("----Elevators----");
-		for (ElevatorCar elevator : this.elevatorCars) {
-			System.out.println(elevator.getId() + ": " + elevator.getNumPassengers());
+		if (this.printFloorsAndElevators) {
+			System.out.println("----Floor arrivals----");
+			for (int floor = 0; floor < this.passengerFloorArrivals.length; floor++) {
+				System.out.println(floor + ": " + this.passengerFloorArrivals[floor]);
+			}
+			
+			System.out.println("----Floor exits----");
+			for (int floor = 0; floor < this.passengerFloorExits.length; floor++) {
+				System.out.println(floor + ": " + this.passengerFloorExits[floor]);
+			}
+			
+			System.out.println("----Elevators----");
+			for (ElevatorCar elevator : this.elevatorCars) {
+				System.out.println(elevator.getId() + ": " + elevator.getNumPassengers());
+			}
 		}
 	}
 	

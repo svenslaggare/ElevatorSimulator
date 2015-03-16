@@ -13,8 +13,10 @@ import elevatorsimulator.Simulator;
 import elevatorsimulator.SimulatorClock;
 import elevatorsimulator.SimulatorSettings;
 import elevatorsimulator.TrafficProfile;
+import elevatorsimulator.TrafficProfiles;
 import elevatorsimulator.schedulers.CollectiveControl;
 import elevatorsimulator.schedulers.MultiScheduler;
+import elevatorsimulator.schedulers.RoundRobin;
 import elevatorsimulator.schedulers.Zoning;
 import marl.utility.Config;
 import marl.utility.Rand;
@@ -41,8 +43,9 @@ public class RISimulator {
 		};
 		
 		TrafficProfile.Interval[] arrivalRates = new TrafficProfile.Interval[1];
-//		arrivalRates[0] = new TrafficProfile.Interval(0.01, 0.45, 0.45);
-		arrivalRates[0] = new TrafficProfile.Interval(0.03, 1, 0);
+		arrivalRates[0] = new TrafficProfile.Interval(0.03, 0.45, 0.45);
+//		arrivalRates[0] = new TrafficProfile.Interval(0.03, 0, 1.0);
+//		arrivalRates[0] = new TrafficProfile.Interval(0.03, 1, 0.0);
 		
 		SchedulerCreator creator = new SchedulerCreator() {		
 			@Override
@@ -50,6 +53,7 @@ public class RISimulator {
 				List<SchedulingAlgorithm> schedulers = new ArrayList<SchedulingAlgorithm>();
 				schedulers.add(new CollectiveControl());
 				schedulers.add(new Zoning(building.getElevatorCars().length, building));
+				schedulers.add(new RoundRobin(building, false));
 				return new MultiScheduler(schedulers);
 			}
 		};
@@ -59,17 +63,18 @@ public class RISimulator {
 				3,
 				ElevatorCarConfiguration.defaultConfiguration(),
 				floors,
-				new TrafficProfile(arrivalRates)),
-			new SimulatorSettings(360, 6),
+//				new TrafficProfile(arrivalRates)),
+				TrafficProfiles.WEEK_DAY_PROFILE),
+			new SimulatorSettings(0.01, 24 * 60 * 60),
 			creator);
 	    
 	    // Obtain from the configuration how to run the experiment
 	    int totalRuns = config.getInt("total_runs");
 	    int maxEpisodes = config.getInt("max_episodes");
-	    	    
+	    double intervalLearningLength = 10 * 60;
+	    		
 	    // Create the environment and agent
-	    ElevatorSystemEnvironment env = new ElevatorSystemEnvironment(simulator);
-	    
+	    ElevatorSystemEnvironment env = new ElevatorSystemEnvironment(simulator);    
 	    ElevatorSystemAgent agent = new ElevatorSystemAgent(config);
 
 	    System.out.println("Starting Experiment");
@@ -93,13 +98,18 @@ public class RISimulator {
 	            
 	            long lastInterval = 0;
 	            SimulatorClock clock = simulator.getClock();
+	            List<Long> exited = new ArrayList<Long>();
+	            
 	            while (simulator.advance()) {
-	            	if (clock.elapsedSinceRealTime(lastInterval) >= clock.secondsToTime(3 * 60)) {
+	            	if (clock.elapsedSinceRealTime(lastInterval) >= clock.secondsToTime(intervalLearningLength)) {
 		            	env.incrementTime();
+		            	exited.add(simulator.getStats().getInterval().getNumExists());
 		            	simulator.getStats().resetInterval();
 		            	lastInterval = clock.timeNow();
 	            	}
 	            }          
+	            
+	            env.rewardLastState();
 	            
 	            System.out.println(
 	            	"\tRun #" + (runNo + 1) + "\tEpisode #" + (episodeNo + 1)
@@ -109,6 +119,15 @@ public class RISimulator {
 	            for (int i = 0; i < agent.getActionDistribution().length; i++) {
             		System.out.println("\t" + ElevatorSystemAgent.Action.values()[i] + ": " + agent.getActionDistribution()[i]);
             	}
+	            
+//	            System.out.print("\t");
+//	            int i = 0;
+//	            for (ElevatorSystemAgent.Action action : agent.getActionUsage()) {
+//	            	System.out.print(action.toString().charAt(0) + ": " + exited.get(i) + " ");
+//	            	i++;
+//	            }
+//	            	            
+//	            System.out.println();
 	        }
 	    }
 
