@@ -1,10 +1,6 @@
 package elevatorsimulator.reinforcementlearning2;
 
-import java.util.Queue;
-
-import elevatorsimulator.Passenger;
 import elevatorsimulator.Simulator;
-import elevatorsimulator.SimulatorClock;
 import elevatorsimulator.SimulatorStats.SimulatorStatsInterval;
 import elevatorsimulator.schedulers.MultiScheduler;
 import marl.environments.Environment;

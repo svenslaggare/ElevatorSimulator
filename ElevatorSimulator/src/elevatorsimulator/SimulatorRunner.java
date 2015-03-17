@@ -64,7 +64,7 @@ public class SimulatorRunner {
 		schedulerCreators.add(new SchedulerCreator() {		
 			@Override
 			public SchedulingAlgorithm createScheduler(Building building) {
-				return new CollectiveControl(); 
+				return new LongestQueueFirst(); 
 			}
 		});
 		
@@ -75,12 +75,6 @@ public class SimulatorRunner {
 			}
 		});
 		
-		schedulerCreators.add(new SchedulerCreator() {		
-			@Override
-			public SchedulingAlgorithm createScheduler(Building building) {
-				return new LongestQueueFirst();
-			}
-		});
 		
 		schedulerCreators.add(new SchedulerCreator() {		
 			@Override

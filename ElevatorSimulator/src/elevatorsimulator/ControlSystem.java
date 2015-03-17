@@ -57,11 +57,13 @@ public class ControlSystem {
 	}
 	
 	/**
-	 * Marks that the 
-	 * @param passenger
+	 * Marks that the given call has been handled by the given elevator
+	 * @param elevatorCar The elevator car
+	 * @param passenger The passenger
 	 */
-	public void hallCallHandled(Passenger passenger) {
+	public void hallCallHandled(ElevatorCar elevatorCar, Passenger passenger) {
 		this.hallCallQueue.remove(passenger);
+		this.scheduler.passengerBoarded(this.simulator, elevatorCar, passenger);
 	}
 	
 	/**

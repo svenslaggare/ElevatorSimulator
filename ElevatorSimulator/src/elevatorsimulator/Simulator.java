@@ -245,19 +245,14 @@ public class Simulator {
 		TrafficProfile profile = TrafficProfiles.WEEK_DAY_PROFILE;
 		
 		TrafficProfile.Interval[] arrivalRates = new TrafficProfile.Interval[1];
-		//arrivalRates[0] = new TrafficProfile.Interval(0.12, 1.0, 0.0);
-		//arrivalRates[0] = new TrafficProfile.Interval(0.03, 0.45, 0.45);
-//		arrivalRates[0] = new TrafficProfile.Interval(0.03, 0.1, 0.9);
-//		arrivalRates[0] = new TrafficProfile.Interval(0.03, 0, 1.0);
-		arrivalRates[0] = new TrafficProfile.Interval(0.06, 1, 0);
-//		arrivalRates[0] = new TrafficProfile.Interval(0.03, 0.45, 0.45);
+		arrivalRates[0] = new TrafficProfile.Interval(0.03, 0, 1);
 				
 		SchedulerCreator creator = new SchedulerCreator() {		
 			@Override
 			public SchedulingAlgorithm createScheduler(Building building) {
-//				return new CollectiveControl();
-				return new Zoning(building.getElevatorCars().length, building);
 //				return new LongestQueueFirst();
+//				return new Zoning(building.getElevatorCars().length, building);
+				return new ThreePassageGroupElevator(building);
 //				return new RoundRobin(building, false);
 			}
 		};

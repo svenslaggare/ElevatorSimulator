@@ -14,7 +14,7 @@ import elevatorsimulator.SimulatorClock;
 import elevatorsimulator.SimulatorSettings;
 import elevatorsimulator.TrafficProfile;
 import elevatorsimulator.TrafficProfiles;
-import elevatorsimulator.schedulers.CollectiveControl;
+import elevatorsimulator.schedulers.LongestQueueFirst;
 import elevatorsimulator.schedulers.MultiScheduler;
 import elevatorsimulator.schedulers.RoundRobin;
 import elevatorsimulator.schedulers.Zoning;
@@ -51,7 +51,7 @@ public class RISimulator {
 			@Override
 			public SchedulingAlgorithm createScheduler(Building building) {
 				List<SchedulingAlgorithm> schedulers = new ArrayList<SchedulingAlgorithm>();
-				schedulers.add(new CollectiveControl());
+				schedulers.add(new LongestQueueFirst());
 				schedulers.add(new Zoning(building.getElevatorCars().length, building));
 				schedulers.add(new RoundRobin(building, false));
 				return new MultiScheduler(schedulers);
@@ -89,7 +89,7 @@ public class RISimulator {
 	        	
 	        // Output where we are up to
 	        System.out.println("Beginning run #" + runNo);
-	        
+
 	        for (int episodeNo = 0; episodeNo < maxEpisodes; episodeNo++) {
 	            // Reset the environment
 	            env.reset(episodeNo);
@@ -120,14 +120,26 @@ public class RISimulator {
             		System.out.println("\t" + ElevatorSystemAgent.Action.values()[i] + ": " + agent.getActionDistribution()[i]);
             	}
 	            
-//	            System.out.print("\t");
-//	            int i = 0;
-//	            for (ElevatorSystemAgent.Action action : agent.getActionUsage()) {
-//	            	System.out.print(action.toString().charAt(0) + ": " + exited.get(i) + " ");
-//	            	i++;
-//	            }
-//	            	            
-//	            System.out.println();
+	            if (episodeNo == maxEpisodes - 1) {
+		            System.out.print("\t0: ");
+		            int i = 0;
+		            int count = 0;
+		            int hour = 0;
+		            for (ElevatorSystemAgent.Action action : agent.getActionUsage()) {
+		            	System.out.print(action.toString().charAt(0) + ": " + exited.get(i) + " ");
+		            	count++;
+		            	i++;
+		            	
+		            	if (count == 6) {
+		            		hour++;
+		            		System.out.println();
+		            		System.out.print("\t" + hour + ": ");
+		            		count = 0;
+		            	}
+		            }
+	            }
+	            
+	            System.out.println();
 	        }
 	    }
 

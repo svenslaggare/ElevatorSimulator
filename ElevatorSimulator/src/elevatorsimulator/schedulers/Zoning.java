@@ -20,7 +20,9 @@ import elevatorsimulator.Simulator;
 public class Zoning implements SchedulingAlgorithm {
 	private final int numZones;
 	private final List<Zone> zones;
-		
+	private final Zone[] floorToZone;
+	private final Zone[] elevatorToZone;
+	
 	/**
 	 * Represents a zone
 	 * @author Anton Jansson
@@ -56,6 +58,8 @@ public class Zoning implements SchedulingAlgorithm {
 	public Zoning(int numZones, Building building) {
 		this.numZones = numZones;
 		this.zones = new ArrayList<Zoning.Zone>();
+		this.floorToZone = new Zone[building.getFloors().length];
+		this.elevatorToZone = new Zone[building.getElevatorCars().length];
 		
 		int floorsPerZone = building.getFloors().length / this.numZones;
 		double spillPerFloor = (building.getFloors().length / (double)this.numZones) - floorsPerZone;
@@ -90,6 +94,14 @@ public class Zoning implements SchedulingAlgorithm {
 					
 			handledFloors += maxFloor - minFloor + 1;
 			this.zones.add(new Zone(zoneFloors, zoneElevators));
+			
+			for (Floor floor : zoneFloors) {
+				this.floorToZone[floor.getFloorNumber()] = this.zones.get(this.zones.size() - 1);
+			}	
+			
+			for (ElevatorCar elevator : zoneElevators) {
+				this.elevatorToZone[elevator.getId()] = this.zones.get(this.zones.size() - 1);
+			}
 		} 
 	}
 	
@@ -98,13 +110,14 @@ public class Zoning implements SchedulingAlgorithm {
 	 * @param elevatorCar The elevator car
 	 */
 	private Zone getZone(ElevatorCar elevatorCar) {
-		for (Zone zone : this.zones) {
-			if (zone.elevatorCars.contains(elevatorCar)) {
-				return zone;
-			}
-		}
-		
-		return null;
+//		for (Zone zone : this.zones) {
+//			if (zone.elevatorCars.contains(elevatorCar)) {
+//				return zone;
+//			}
+//		}
+//		
+//		return null;
+		return this.elevatorToZone[elevatorCar.getId()];
 	}
 	
 	/**
@@ -112,18 +125,24 @@ public class Zoning implements SchedulingAlgorithm {
 	 * @param floor The floor
 	 */
 	private Zone getZone(int floor) {
-		for (Zone zone : this.zones) {
-			if (floor >= zone.bottomFloor() && floor <= zone.topFloor()) {
-				return zone;
-			}
-		}
-		
-		return null;
+		return this.floorToZone[floor];
+//		for (Zone zone : this.zones) {
+//			if (floor >= zone.bottomFloor() && floor <= zone.topFloor()) {
+//				return zone;
+//			}
+//		}
+//		
+//		return null;
 	}
 	
 	@Override
 	public void passengerArrived(Simulator simulator, Passenger passenger) {
 
+	}
+	
+	@Override
+	public void passengerBoarded(Simulator simulator, ElevatorCar elevatorCar,	Passenger passenger) {
+		
 	}
 
 	@Override

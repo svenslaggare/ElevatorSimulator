@@ -52,6 +52,11 @@ public class RoundRobin implements SchedulingAlgorithm {
 		this.elevators.get(this.nextElevator).queue.add(passenger);
 		this.nextElevator = (nextElevator + 1) % this.elevators.size();
 	}
+	
+	@Override
+	public void passengerBoarded(Simulator simulator, ElevatorCar elevatorCar,	Passenger passenger) {
+		
+	}
 
 	@Override
 	public void update(Simulator simulator) {

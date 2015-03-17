@@ -1,4 +1,5 @@
 package elevatorsimulator;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -103,11 +104,11 @@ public class Floor {
 	/**
 	 * Marks that the given hall call has been handled
 	 * @param simulator The simulator
+	 * @param elevatorCar The elevator car that the passenger boarded
 	 * @param passenger The passenger
 	 */
-	private void hallCallHandled(Simulator simulator, Passenger passenger) {
-		this.waitingQueue.remove(passenger);
-		simulator.getControlSystem().hallCallHandled(passenger);
+	private void hallCallHandled(Simulator simulator, ElevatorCar elevatorCar, Passenger passenger) {
+		simulator.getControlSystem().hallCallHandled(elevatorCar, passenger);
 		passenger.board();
 	}
 	
@@ -118,11 +119,44 @@ public class Floor {
 	 */
 	public void update(Simulator simulator, long duration) {
 		if (!this.waitingQueue.isEmpty()) {
-			for (Passenger passenger : new LinkedList<Passenger>(this.waitingQueue)) {
+//			for (Passenger passenger : new LinkedList<Passenger>(this.waitingQueue)) {
+//				for (ElevatorCar elevator : simulator.getBuilding().getElevatorCars()) {
+//					if (elevator.getState() == State.STOPPED || elevator.getState() == State.IDLE) {			
+//						//Check if the elevator can pickup the passenger
+//						if (!elevator.canPickupPassenger(passenger) || !elevator.canBoard(simulator)) {
+//							continue;
+//						}
+//						
+//						boolean canPickup = false;
+//						
+//						Direction dir = Direction.getDirection(this.floorNumber, passenger.getDestinationFloor());
+//						
+//						if (this.floorNumber == elevator.getFloor()) {
+//							canPickup = 
+//								elevator.getDirection() == Direction.NONE
+//								|| elevator.getDirection() == dir;
+//						}
+//						
+//						
+//						if (canPickup) {
+//							simulator.elevatorLog(elevator.getId(), "Picked up passenger #" + passenger.getId() + " at floor "
+//								+ this.floorNumber + " with the destination of "
+//								+ passenger.getDestinationFloor() + ".");
+//								
+//							elevator.setDirection(dir);
+//							elevator.pickUp(simulator, passenger);
+//							this.hallCallHandled(simulator, passenger);
+//							break;
+//						}
+//					}
+//				}
+//			}
+			
+			Iterator<Passenger> iterator = this.waitingQueue.iterator();
+			while (iterator.hasNext()) {
+				Passenger passenger = iterator.next();
 				for (ElevatorCar elevator : simulator.getBuilding().getElevatorCars()) {
-					if (elevator.getState() == State.STOPPED || elevator.getState() == State.IDLE) {
-//						simulator.elevatorLog(elevator.getId(), "Trying to pick up passenger at floor: " + passenger.getArrivalFloor());
-						
+					if (elevator.getState() == State.STOPPED || elevator.getState() == State.IDLE) {			
 						//Check if the elevator can pickup the passenger
 						if (!elevator.canPickupPassenger(passenger) || !elevator.canBoard(simulator)) {
 							continue;
@@ -146,7 +180,8 @@ public class Floor {
 								
 							elevator.setDirection(dir);
 							elevator.pickUp(simulator, passenger);
-							this.hallCallHandled(simulator, passenger);
+							iterator.remove();
+							this.hallCallHandled(simulator, elevator, passenger);
 							break;
 						}
 					}
@@ -160,10 +195,6 @@ public class Floor {
 		long intervalDuration = timeNow - this.lastIntervalStart;
 		
 		if (clock.durationFromRealTime(intervalDuration) >= this.traficProfile.length() || interval == null) {
-//			if (this.floorNumber == 0 && interval != null) { 
-//				simulator.getStats().printStats();
-//			}
-			
 			this.setInterval(simulator);
 			this.lastIntervalStart = timeNow;
 			this.generateNextTimeArrival(simulator);

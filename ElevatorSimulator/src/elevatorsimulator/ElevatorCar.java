@@ -123,6 +123,24 @@ public class ElevatorCar {
 	}
 
 	/**
+	 * Returns the next floor the elevator will be on. 
+	 * If the elevator is not traveling, the current floor is returned.
+	 */
+	public int nextFloor() {		
+		if (this.state == State.MOVING) {
+			if (this.direction == Direction.UP) {
+				return this.floor + 1;
+			} else if (this.direction == Direction.DOWN) {
+				return this.floor - 1;
+			} else {
+				return this.floor;
+			}
+		} else {
+			return this.floor;
+		}
+	}
+	
+	/**
 	 * Stops the elevator
 	 * @param simulator The simulator
 	 */

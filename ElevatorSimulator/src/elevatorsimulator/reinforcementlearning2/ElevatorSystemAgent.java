@@ -26,7 +26,7 @@ public class ElevatorSystemAgent extends Agent<ElevatorSystemEnvironment> {
 	private final List<Action> actions = new ArrayList<Action>();
 	
 	public enum Action {
-		COLLECTIVE_CONTROL,
+		LONGEST_QUEUE_FIRST,
 		ZONING,
 		ROUND_ROBIN
 	}

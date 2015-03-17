@@ -48,9 +48,15 @@ public class RISimulator {
 					public void update(Simulator simulator) {
 					
 					}
-					
+										
 					@Override
 					public void passengerArrived(Simulator simulator, Passenger passenger) {
+						
+					}
+					
+
+					@Override
+					public void passengerBoarded(Simulator simulator, ElevatorCar elevatorCar,	Passenger passenger) {
 						
 					}
 					
