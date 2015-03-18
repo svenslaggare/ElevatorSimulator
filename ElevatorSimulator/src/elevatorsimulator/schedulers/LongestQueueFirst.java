@@ -25,6 +25,11 @@ public class LongestQueueFirst implements SchedulingAlgorithm {
 		
 	}
 	
+	@Override
+	public void passengerExited(Simulator simulator, ElevatorCar elevatorCar, Passenger passenger) {
+
+	}
+	
 	private static enum HandleType {
 		NONE,
 		DISPATCH,

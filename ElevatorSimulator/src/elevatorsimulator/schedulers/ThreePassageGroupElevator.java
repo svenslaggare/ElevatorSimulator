@@ -12,6 +12,7 @@ import java.util.Set;
 import elevatorsimulator.Building;
 import elevatorsimulator.Direction;
 import elevatorsimulator.ElevatorCar;
+import elevatorsimulator.ElevatorCarConfiguration;
 import elevatorsimulator.Passenger;
 import elevatorsimulator.SchedulingAlgorithm;
 import elevatorsimulator.Simulator;
@@ -42,11 +43,66 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 	}
 	
 	/**
+	 * Represents a passenger call
+	 * @author Anton Jansson
+	 *
+	 */
+	private static class PassengerCall {
+		public final PassageType type;
+		public final Passenger passenger;
+		
+		/**
+		 * Creates a new passenger call
+		 * @param type The type of the call
+		 * @param passenger The passenger
+		 */
+		public PassengerCall(PassageType type, Passenger passenger) {
+			this.type = type;
+			this.passenger = passenger;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result	+ ((passenger == null) ? 0 : passenger.hashCode());
+			result = prime * result + ((type == null) ? 0 : type.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (!(obj instanceof PassengerCall)) {
+				return false;
+			}
+			PassengerCall other = (PassengerCall) obj;
+			if (passenger == null) {
+				if (other.passenger != null) {
+					return false;
+				}
+			} else if (!passenger.equals(other.passenger)) {
+				return false;
+			}
+			if (type != other.type) {
+				return false;
+			}
+			return true;
+		}	
+	}
+	
+	/**
 	 * Contains data about an elevator car
 	 */
 	private static class ElevatorData {
 		public final ElevatorCar elevatorCar;
-		public final Queue<Passenger> callQueue = new LinkedList<Passenger>();
+		public final Queue<PassengerCall> hallCalls = new LinkedList<PassengerCall>();
+		public final Set<PassengerCall> carCalls = new HashSet<PassengerCall>();
 		
 		public ElevatorData(ElevatorCar elevatorCar) {
 			this.elevatorCar = elevatorCar;
@@ -63,6 +119,38 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 			this.elevators.add(elevatorData);
 			this.elevatorToData.put(elevator, elevatorData);
 		}
+	}
+	
+	/**
+	 * Finds the hall call for the given passenger
+	 * @param elevatorData The elevator data
+	 * @param passenger The passenger
+	 * @return The hall call or null
+	 */
+	private PassengerCall findHallCall(ElevatorData elevatorData, Passenger passenger) {
+		for (PassengerCall hallCall : elevatorData.hallCalls) {
+			if (hallCall.passenger == passenger) {
+				return hallCall;
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Finds the car call for the given passenger
+	 * @param elevatorData The elevator data
+	 * @param passenger The passenger
+	 * @return The car call or null
+	 */
+	private PassengerCall findCarCall(ElevatorData elevatorData, Passenger passenger) {
+		for (PassengerCall carCall : elevatorData.carCalls) {
+			if (carCall.passenger == passenger) {
+				return carCall;
+			}
+		}
+		
+		return null;
 	}
 	
 	/**
@@ -131,7 +219,8 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 		
 		//TODO: Correct this
 		for (ElevatorData elevatorData : this.elevators) {
-			for (Passenger passenger : elevatorData.callQueue) {
+			for (PassengerCall hallCall : elevatorData.hallCalls) {
+				Passenger passenger = hallCall.passenger;
 				if (passenger.getDestinationFloor() > minFloor && passenger.getDestinationFloor() < maxFloor) {
 					hallCalls.add(passenger);
 				}
@@ -141,10 +230,17 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 		return hallCalls;
 	}
 	
-	private double calculateStopTime(Simulator simulator, ElevatorCar elevatorCar, Passenger passengerToHandle) {
-		int k = passengerToHandle.getArrivalFloor();
-		int j = passengerToHandle.getDestinationFloor(); //Find if this is true
+	private static class Tuple {
+		public final int first;
+		public final int second;
 		
+		public Tuple(int first, int second) {
+			this.first = first;
+			this.second = second;
+		}
+	}
+	
+	private int calculateNkPass(Simulator simulator, Passenger passengerToHandle) {
 		int nkPass = 0;
 		
 		for (Passenger passenger : simulator.getControlSystem().getHallQueue()) {
@@ -154,37 +250,46 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 			}
 		}
 		
+		return nkPass;
+	}
+		
+	private Tuple calculateFi(Building building, int floor, Direction dir) {
 		int fik = 0;
 		int fiActual = 0;
 		
-		if (elevatorCar.getDirection() == Direction.UP) {
-			fik = simulator.getBuilding().numFloors() - elevatorCar.getFloor();
-			fiActual = simulator.getBuilding().numFloors();
-		} else if (elevatorCar.getDirection() == Direction.DOWN) {
-			fik = elevatorCar.getFloor();
+		if (dir == Direction.UP) {
+			fik = building.numFloors() - floor;
+			fiActual = building.numFloors();
+		} else if (dir == Direction.DOWN) {
+			fik = floor;
 			fiActual = 0;
 		} else {
-			fik = Math.max(simulator.getBuilding().numFloors() - elevatorCar.getFloor(), elevatorCar.getFloor());
+			fik = Math.max(building.numFloors() - floor, floor);
 			
-			if (fik == elevatorCar.getFloor()) {
+			if (fik == floor) {
 				fiActual = 0;
 			} else {
-				fiActual = simulator.getBuilding().numFloors() - 1;
+				fiActual = building.numFloors() - 1;
 			}
 		}
 		
-		double Pik = 0.0;
+		return new Tuple(fik, fiActual);
+	}
 		
+	private double calculatePik(int nkPass, double fik) {
 		if (nkPass == 1) {
-			Pik = 1.0 - 1.0 / fik;
+			return 1.0 - 1.0 / fik;
 		} else {
-			Pik = Math.exp(-(double)nkPass / fik);
+			return Math.exp(-(double)nkPass / fik);
 		}
-		
-		double sik = fik * (1.0 - Pik);
-		
-		double liNet = 0;
-		
+	}
+	
+	private double calculateSik(double fik, double Pik) {
+		return fik * (1.0 - Pik);
+	}
+	
+	private double calculateLiNet(int fik, double Pik) {
+		double liNet = 0.0;
 		if (fik > 1) {
 			for (int l = 2; l <= fik; l++) {
 				double product = 1;
@@ -195,22 +300,268 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 				
 				liNet += product;
 			}
-		}		
+		}
 		
-		double fiFarthest = fiActual - liNet;
-		
+		return liNet;
+	}
+	
+	private double calculateFiFarthest(int fiActual, double liNet) {
+		return fiActual - liNet;
+	}
+	
+	private int calculateSkjManadatory(Simulator simulator, int k, int j) {
 		Set<Passenger> Ckj = this.getCarCalls(simulator, k, j);
 		Set<Passenger> Hkj = this.getHallCalls(simulator, k, j);
 		Set<Passenger> CHkj = new HashSet<>();
 		CHkj.addAll(Ckj);
 		CHkj.addAll(Hkj);
 		
-		int skjMandatory = Ckj.size() + Hkj.size() - CHkj.size();
-		double skjExtra = sik * ((double)Math.abs(j - k) - 1.0 - skjMandatory) / (double)fik;
+		return Ckj.size() + Hkj.size() - CHkj.size();
+	}
 		
+	private double calculateSkjExtra(double sik, double skjMandatory, double fik, int k, int j) {
+		return sik * ((double)Math.abs(j - k) - 1.0 - skjMandatory) / (double)fik;
+	}
+	
+	private double calculateStopTime(double Pik, double sik, double liNet, double fiFarthest, double skjMandatory, double skjExtra) {		
 		return Pik + sik + liNet + fiFarthest + skjMandatory + skjExtra;
 	}
 		
+	private double calculateTiAttending(Simulator simulator, int elevatorFloor, Direction elevatorDir, Passenger passengerToHandle, Set<Integer> CiBefore, Set<Integer> HiBefore) {
+		double tikNonstop = 
+				Math.abs(passengerToHandle.getDestinationFloor() - elevatorFloor)
+				* ElevatorCarConfiguration.defaultConfiguration().getFloorTime();
+		
+		double sikExtraSum = 0;
+		int k = passengerToHandle.getArrivalFloor();
+		int j = passengerToHandle.getDestinationFloor();
+		int nkPass = this.calculateNkPass(simulator, passengerToHandle);
+		Tuple fi = this.calculateFi(simulator.getBuilding(), elevatorFloor, elevatorDir);
+		int fik = fi.first;
+		int fiActual = fi.second;
+		double Pik = this.calculatePik(nkPass, fik);
+		double sik = this.calculateSik(fik, Pik);
+		double skjMandatory = this.calculateSkjManadatory(simulator, k, j);
+		double skjExtra = this.calculateSkjExtra(sik, skjMandatory, fik, k, j);
+		double liNet = this.calculateLiNet(fik, Pik);
+		double fiFarthest = this.calculateFiFarthest(fiActual, liNet);
+		
+		for (int floor : HiBefore) {
+			double skjMandatoryFloor = this.calculateSkjManadatory(simulator, floor, passengerToHandle.getArrivalFloor());
+			sikExtraSum += this.calculateSkjExtra(sik, skjMandatoryFloor, fik, floor, passengerToHandle.getArrivalFloor());
+		}
+		
+		double ts = this.calculateStopTime(Pik, sik, liNet, fiFarthest, skjMandatory, skjExtra);
+		
+		Set<Integer> CHiBefore = new HashSet<>();
+		CHiBefore.addAll(CiBefore);
+		CHiBefore.addAll(HiBefore);
+		
+		return tikNonstop + (CiBefore.size() + HiBefore.size() - CHiBefore.size() + sikExtraSum) * ts;
+	}
+	
+	private double calculateTiAttending(Simulator simulator, ElevatorCar elevatorCar, Passenger passengerToHandle, Set<Integer> CiBefore, Set<Integer> HiBefore) {
+		return calculateTiAttending(simulator, elevatorCar.getFloor(), elevatorCar.getDirection(), passengerToHandle, CiBefore, HiBefore);
+	}
+	
+	private double calculateTiAttending(Simulator simulator, ElevatorData elevatorData, Passenger passengerToHandle, PassageType callType) {
+		switch (callType) {
+		case P1:
+			{
+				Set<Integer> CiBefore = new HashSet<>();		
+				int callDelta = Math.abs(elevatorData.elevatorCar.getFloor() - passengerToHandle.getDestinationFloor());
+				
+				for (PassengerCall carCall : elevatorData.carCalls) {
+					if (carCall.type == PassageType.P1) {
+						int delta = Math.abs(elevatorData.elevatorCar.getFloor() - carCall.passenger.getDestinationFloor());
+						
+						if (delta < callDelta) {					
+							CiBefore.add(carCall.passenger.getDestinationFloor());
+						}
+					}
+				}
+							
+				callDelta = Math.abs(elevatorData.elevatorCar.getFloor() - passengerToHandle.getArrivalFloor());
+				Set<Integer> HiBefore = new HashSet<>();
+				
+				for (PassengerCall hallCall : elevatorData.hallCalls) {
+					if (hallCall.type == PassageType.P1) {
+						int delta = Math.abs(elevatorData.elevatorCar.getFloor() - hallCall.passenger.getArrivalFloor());
+						
+						if (delta < callDelta) {	
+							HiBefore.add(hallCall.passenger.getArrivalFloor());
+						}
+					}
+				}
+				
+				return this.calculateTiAttending(simulator, elevatorData.elevatorCar, passengerToHandle, CiBefore, HiBefore);
+			}
+		case P2:
+			{
+				//Check if any P1 calls exist
+				boolean existsP1 = false;
+				for (PassengerCall carCall : elevatorData.carCalls) {
+					if (carCall.type == PassageType.P1) {
+						existsP1 = true;
+						break;
+					}
+				}
+				
+				if (!existsP1) {
+					for (PassengerCall hallCall : elevatorData.hallCalls) {
+						if (hallCall.type == PassageType.P1) {
+							existsP1 = true;
+							break;
+						}
+					}
+				}
+				
+				//First case
+				if (!existsP1) {				
+					//Calculate the reversal floor
+					int reversalFloor = -1;
+					
+					for (PassengerCall hallCall : elevatorData.hallCalls) {
+						if (hallCall.type == PassageType.P2) {
+							if (reversalFloor == -1) {
+								reversalFloor = hallCall.passenger.getArrivalFloor();
+								continue;
+							}
+							
+							if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+								if (hallCall.passenger.getArrivalFloor() > reversalFloor) {
+									reversalFloor = hallCall.passenger.getArrivalFloor();
+								}
+							} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+								if (hallCall.passenger.getArrivalFloor() < reversalFloor) {
+									reversalFloor = hallCall.passenger.getArrivalFloor();
+								}
+							}
+						}
+					}
+					
+					Set<Integer> CiBefore = new HashSet<>();		
+					
+					int callDelta = Math.abs(reversalFloor - passengerToHandle.getDestinationFloor());
+					
+					for (PassengerCall carCall : elevatorData.carCalls) {
+						if (carCall.type == PassageType.P2) {
+							int delta = Math.abs(reversalFloor - carCall.passenger.getDestinationFloor());
+							
+							if (delta < callDelta) {					
+								CiBefore.add(carCall.passenger.getDestinationFloor());
+							}
+						}
+					}
+								
+					callDelta = Math.abs(reversalFloor - passengerToHandle.getArrivalFloor());
+					Set<Integer> HiBefore = new HashSet<>();
+					
+					for (PassengerCall hallCall : elevatorData.hallCalls) {
+						if (hallCall.type == PassageType.P2) {
+							int delta = Math.abs(reversalFloor - hallCall.passenger.getArrivalFloor());
+							
+							if (delta < callDelta) {	
+								HiBefore.add(hallCall.passenger.getArrivalFloor());
+							}
+						}
+					}
+					
+					return this.calculateTiAttending(simulator, elevatorData.elevatorCar, passengerToHandle, CiBefore, HiBefore);
+				} else {
+					//The second case
+					
+					//Part 1
+					Set<Integer> CiBefore = new HashSet<>();		
+					for (PassengerCall carCall : elevatorData.carCalls) {
+						CiBefore.add(carCall.passenger.getDestinationFloor());
+					}
+					
+					Set<Integer> HiBefore = new HashSet<>();				
+					for (PassengerCall hallCall : elevatorData.hallCalls) {
+						if (hallCall.type == PassageType.P1) {
+							HiBefore.add(hallCall.passenger.getArrivalFloor());
+						}
+					}
+					
+					double tiAttendingPart1 = this.calculateTiAttending(simulator, elevatorData.elevatorCar, passengerToHandle, CiBefore, HiBefore);
+					
+					//Part 2
+					
+					//Calculate the reversal floor
+					int reversalFloor = -1;
+					
+					for (PassengerCall carCall : elevatorData.carCalls) {
+						if (carCall.type == PassageType.P1) {
+							if (reversalFloor == -1) {
+								reversalFloor = carCall.passenger.getArrivalFloor();
+								continue;
+							}
+							
+							if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+								if (carCall.passenger.getDestinationFloor() > reversalFloor) {
+									reversalFloor = carCall.passenger.getDestinationFloor();
+								}
+							} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+								if (carCall.passenger.getDestinationFloor() < reversalFloor) {
+									reversalFloor = carCall.passenger.getDestinationFloor();
+								}
+							}
+						}
+					}
+					
+					for (PassengerCall hallCall : elevatorData.hallCalls) {
+						if (hallCall.type == PassageType.P2) {
+							if (reversalFloor == -1) {
+								reversalFloor = hallCall.passenger.getArrivalFloor();
+								continue;
+							}
+							
+							if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+								if (hallCall.passenger.getArrivalFloor() > reversalFloor) {
+									reversalFloor = hallCall.passenger.getArrivalFloor();
+								}
+							} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+								if (hallCall.passenger.getArrivalFloor() < reversalFloor) {
+									reversalFloor = hallCall.passenger.getArrivalFloor();
+								}
+							}
+						}
+					}
+					
+					CiBefore.clear();
+					HiBefore.clear();
+					
+					int callDelta = Math.abs(reversalFloor - passengerToHandle.getArrivalFloor());
+					for (PassengerCall hallCall : elevatorData.hallCalls) {
+						if (hallCall.type == PassageType.P2) {
+							int delta = Math.abs(reversalFloor - hallCall.passenger.getArrivalFloor());
+							
+							if (delta < callDelta) {	
+								HiBefore.add(hallCall.passenger.getArrivalFloor());
+							}
+						}
+					}
+					
+					double tiAttendingPart2 = this.calculateTiAttending(
+						simulator,
+						reversalFloor,
+						elevatorData.elevatorCar.getDirection().oppositeDir(),
+						passengerToHandle,
+						CiBefore,
+						HiBefore);
+					
+					return tiAttendingPart1 + tiAttendingPart2;
+				}
+			}
+//		case P3:
+//			
+//			break;
+		default:
+			return 0.0;
+		}
+	}
+	
 	@Override
 	public void passengerArrived(Simulator simulator, Passenger passenger) {
 		ElevatorData bestElevator = null;
@@ -231,12 +582,28 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 			}
 		}
 		
-		bestElevator.callQueue.add(passenger);
+		bestElevator.hallCalls.add(new PassengerCall(bestType, passenger));
 	}
 	
 	@Override
 	public void passengerBoarded(Simulator simulator, ElevatorCar elevatorCar, Passenger passenger) {
-		this.elevatorToData.get(elevatorCar).callQueue.remove(passenger);
+		ElevatorData elevatorData = this.elevatorToData.get(elevatorCar);
+		PassengerCall hallCall = this.findHallCall(elevatorData, passenger);
+		
+		if (hallCall != null) {
+			elevatorData.hallCalls.remove(hallCall);
+			elevatorData.carCalls.add(hallCall);
+		}
+	}
+	
+	@Override
+	public void passengerExited(Simulator simulator, ElevatorCar elevatorCar, Passenger passenger) {
+		ElevatorData elevatorData = this.elevatorToData.get(elevatorCar);
+		PassengerCall carCall = this.findCarCall(elevatorData, passenger);
+		
+		if (carCall != null) {
+			elevatorData.carCalls.remove(carCall);
+		}
 	}
 
 	@Override
@@ -247,7 +614,8 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 			if (elevatorCar.getState() == State.MOVING) {
 				boolean stopAtNext = false;
 				
-				for (Passenger passenger : elevatorData.callQueue) {
+				for (PassengerCall hallCall : elevatorData.hallCalls) {
+					Passenger passenger = hallCall.passenger;
 					PassageType type = this.getType(elevatorCar, passenger);
 					
 					if (type == PassageType.P1) {
@@ -263,8 +631,8 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 				}
 			} else if (elevatorCar.getState() == State.IDLE) {				
 				Passenger toHandle = null;
-				if (!elevatorData.callQueue.isEmpty()) {
-					toHandle = elevatorData.callQueue.remove();
+				if (!elevatorData.hallCalls.isEmpty()) {
+					toHandle = elevatorData.hallCalls.remove().passenger;
 				}
 				
 				if (toHandle != null) {

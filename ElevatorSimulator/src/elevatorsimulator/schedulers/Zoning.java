@@ -146,6 +146,11 @@ public class Zoning implements SchedulingAlgorithm {
 	}
 
 	@Override
+	public void passengerExited(Simulator simulator, ElevatorCar elevatorCar, Passenger passenger) {
+
+	}
+	
+	@Override
 	public void update(Simulator simulator) {		
 		for (Passenger passenger : simulator.getControlSystem().getHallQueue()) {
 			for (ElevatorCar elevator : this.getZone(passenger.getArrivalFloor()).elevatorCars) {
@@ -160,15 +165,15 @@ public class Zoning implements SchedulingAlgorithm {
 					Direction dir = Direction.getDirection(passenger.getArrivalFloor(), passenger.getDestinationFloor());
 					
 					if (elevator.getDirection() == dir) {
-						boolean correctFloor = false;
-						
-						if (elevator.getDirection() == Direction.UP) {
-							correctFloor = elevator.getFloor() + 1 == passenger.getArrivalFloor();
-						} else if (elevator.getDirection() == Direction.DOWN) {
-							correctFloor = elevator.getFloor() - 1 == passenger.getArrivalFloor();
-						}
+//						boolean correctFloor = false;
+//						
+//						if (elevator.getDirection() == Direction.UP) {
+//							correctFloor = elevator.getFloor() + 1 == passenger.getArrivalFloor();
+//						} else if (elevator.getDirection() == Direction.DOWN) {
+//							correctFloor = elevator.getFloor() - 1 == passenger.getArrivalFloor();
+//						}
 													
-						if (correctFloor) {
+						if (elevator.nextFloor() == passenger.getArrivalFloor()) {
 							elevator.stopElevatorAtNextFloor();
 							break;
 						}

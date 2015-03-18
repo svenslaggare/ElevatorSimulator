@@ -64,6 +64,11 @@ public class RISimulator {
 					public void onIdle(Simulator simulator, ElevatorCar elevatorCar) {
 						
 					}
+
+					@Override
+					public void passengerExited(Simulator simulator, ElevatorCar elevatorCar, Passenger passenger) {
+
+					}
 				};
 			}
 		};

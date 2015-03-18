@@ -42,6 +42,11 @@ public class MultiScheduler implements SchedulingAlgorithm {
 	public void passengerBoarded(Simulator simulator, ElevatorCar elevatorCar,	Passenger passenger) {
 		this.schedulers.get(this.activeScheduler).passengerBoarded(simulator, elevatorCar, passenger);
 	}
+	
+	@Override
+	public void passengerExited(Simulator simulator, ElevatorCar elevatorCar, Passenger passenger) {
+		this.schedulers.get(this.activeScheduler).passengerExited(simulator, elevatorCar, passenger);
+	}
 
 	@Override
 	public void update(Simulator simulator) {

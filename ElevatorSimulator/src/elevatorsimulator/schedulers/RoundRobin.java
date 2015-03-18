@@ -57,6 +57,11 @@ public class RoundRobin implements SchedulingAlgorithm {
 	public void passengerBoarded(Simulator simulator, ElevatorCar elevatorCar,	Passenger passenger) {
 		
 	}
+	
+	@Override
+	public void passengerExited(Simulator simulator, ElevatorCar elevatorCar, Passenger passenger) {
+
+	}
 
 	@Override
 	public void update(Simulator simulator) {

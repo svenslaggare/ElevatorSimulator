@@ -14,12 +14,20 @@ public interface SchedulingAlgorithm {
 	public void passengerArrived(Simulator simulator, Passenger passenger);
 	
 	/**
-	 * Marks that the given passenger has boarded the given elevator
+	 * Marks that the given passenger has boarded the given elevator car
 	 * @param simulator The simulator
 	 * @param elevatorCar The elevator car
 	 * @param passenger The passenger
 	 */
 	public void passengerBoarded(Simulator simulator, ElevatorCar elevatorCar, Passenger passenger);
+	
+	/**
+	 * Marks that the given passenger has exited the given elevator car
+	 * @param simulator The simulator
+	 * @param elevatorCar The elevator car
+	 * @param passenger The passenger
+	 */
+	public void passengerExited(Simulator simulator, ElevatorCar elevatorCar, Passenger passenger);
 	
 	/**
 	 * Updates the scheduler
