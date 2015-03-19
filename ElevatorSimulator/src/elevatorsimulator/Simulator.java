@@ -241,12 +241,10 @@ public class Simulator {
 		int[] floors = new int[] {
 			0, 80, 70, 90, 80, 115, 120, 90, 80, 90, 80, 100, 80, 80, 50
 		};
-		
-		TrafficProfile profile = TrafficProfiles.WEEK_DAY_PROFILE;
-		
 		TrafficProfile.Interval[] arrivalRates = new TrafficProfile.Interval[1];
-		arrivalRates[0] = new TrafficProfile.Interval(0.03, 0, 1);
-				
+		arrivalRates[0] = new TrafficProfile.Interval(0.06, 0, 1);
+//		arrivalRates[0] = new TrafficProfile.Interval(0.06, 1, 0);
+		
 		SchedulerCreator creator = new SchedulerCreator() {		
 			@Override
 			public SchedulingAlgorithm createScheduler(Building building) {
@@ -263,7 +261,7 @@ public class Simulator {
 				ElevatorCarConfiguration.defaultConfiguration(),
 				floors,
 				new TrafficProfile(arrivalRates)),
-//				profile),
+//				TrafficProfiles.WEEK_DAY_PROFILE),
 			new SimulatorSettings(0.01, 1 * 60 * 60),
 			creator);
 		

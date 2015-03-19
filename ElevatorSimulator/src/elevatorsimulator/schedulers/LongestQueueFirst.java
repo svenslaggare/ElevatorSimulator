@@ -118,6 +118,11 @@ public class LongestQueueFirst implements SchedulingAlgorithm {
 	}
 	
 	@Override
+	public void onTurned(Simulator simulator, ElevatorCar elevatorCar) {
+
+	}
+	
+	@Override
 	public String toString() {
 		return "LongestQueueFirst";
 	}

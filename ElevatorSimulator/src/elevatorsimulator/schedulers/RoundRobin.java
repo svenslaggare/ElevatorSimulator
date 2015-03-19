@@ -102,6 +102,11 @@ public class RoundRobin implements SchedulingAlgorithm {
 	}
 	
 	@Override
+	public void onTurned(Simulator simulator, ElevatorCar elevatorCar) {
+
+	}
+	
+	@Override
 	public String toString() {
 		if (!this.isUpPeak) {
 			return "RoundRobin";

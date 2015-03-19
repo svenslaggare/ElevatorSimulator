@@ -61,12 +61,17 @@ public class RISimulator {
 					}
 					
 					@Override
+					public void passengerExited(Simulator simulator, ElevatorCar elevatorCar, Passenger passenger) {
+
+					}
+					
+					@Override
 					public void onIdle(Simulator simulator, ElevatorCar elevatorCar) {
 						
 					}
-
+					
 					@Override
-					public void passengerExited(Simulator simulator, ElevatorCar elevatorCar, Passenger passenger) {
+					public void onTurned(Simulator simulator, ElevatorCar elevatorCar) {
 
 					}
 				};

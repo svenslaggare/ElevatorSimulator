@@ -41,4 +41,11 @@ public interface SchedulingAlgorithm {
 	 * @param elevatorCar The elevator car
 	 */
 	public void onIdle(Simulator simulator, ElevatorCar elevatorCar);
+	
+	/**
+	 * The action to execute when the given elevator car has turned
+	 * @param simulator The simulator
+	 * @param elevatorCar The elevator car
+	 */
+	public void onTurned(Simulator simulator, ElevatorCar elevatorCar);
 }

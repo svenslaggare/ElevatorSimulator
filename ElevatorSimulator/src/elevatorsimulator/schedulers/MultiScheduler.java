@@ -57,4 +57,9 @@ public class MultiScheduler implements SchedulingAlgorithm {
 	public void onIdle(Simulator simulator, ElevatorCar elevatorCar) {
 		this.schedulers.get(this.activeScheduler).onIdle(simulator, elevatorCar);
 	}
+	
+	@Override
+	public void onTurned(Simulator simulator, ElevatorCar elevatorCar) {
+		this.schedulers.get(this.activeScheduler).onTurned(simulator, elevatorCar);
+	}
 }

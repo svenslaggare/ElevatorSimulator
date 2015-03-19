@@ -28,7 +28,6 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 	private Map<ElevatorCar, ElevatorData> elevatorToData = new HashMap<>();
 	
 	private static enum PassageType {
-		NONE,
 		P1,
 		P2,
 		P3;
@@ -48,7 +47,7 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 	 *
 	 */
 	private static class PassengerCall {
-		public final PassageType type;
+		public PassageType type;
 		public final Passenger passenger;
 		
 		/**
@@ -189,7 +188,7 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 		} else {
 			//Same floor
 			if (elevatorCar.getState() == State.IDLE || elevatorCar.getState() == State.STOPPED) {
-				return PassageType.NONE;
+				return PassageType.P1;
 			}
 			
 			if (passDir == carDir) {
@@ -273,6 +272,10 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 			}
 		}
 		
+		if (fik == 0) {
+			fik = building.numFloors();
+		}
+		
 		return new Tuple(fik, fiActual);
 	}
 		
@@ -348,7 +351,7 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 		
 		for (int floor : HiBefore) {
 			double skjMandatoryFloor = this.calculateSkjManadatory(simulator, floor, passengerToHandle.getArrivalFloor());
-			sikExtraSum += this.calculateSkjExtra(sik, skjMandatoryFloor, fik, floor, passengerToHandle.getArrivalFloor());
+			sikExtraSum += this.calculateSkjExtra(sik, skjMandatoryFloor, fik, elevatorFloor, passengerToHandle.getArrivalFloor());
 		}
 		
 		double ts = this.calculateStopTime(Pik, sik, liNet, fiFarthest, skjMandatory, skjExtra);
@@ -357,7 +360,16 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 		CHiBefore.addAll(CiBefore);
 		CHiBefore.addAll(HiBefore);
 		
-		return tikNonstop + (CiBefore.size() + HiBefore.size() - CHiBefore.size() + sikExtraSum) * ts;
+		double tiAttending = tikNonstop + (CiBefore.size() + HiBefore.size() - CHiBefore.size() + sikExtraSum) * ts;
+		
+//		if (tiAttending < 0) {
+//			System.out.println(
+//				"Negative tiAttending: (" + tiAttending + "): "
+//				+ passengerToHandle.getArrivalFloor() + "->" + passengerToHandle.getDestinationFloor()
+//				+ " (Elevator floor: " + elevatorFloor + ")");
+//		}
+		
+		return tiAttending;		
 	}
 	
 	private double calculateTiAttending(Simulator simulator, ElevatorCar elevatorCar, Passenger passengerToHandle, Set<Integer> CiBefore, Set<Integer> HiBefore) {
@@ -494,7 +506,7 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 					for (PassengerCall carCall : elevatorData.carCalls) {
 						if (carCall.type == PassageType.P1) {
 							if (reversalFloor == -1) {
-								reversalFloor = carCall.passenger.getArrivalFloor();
+								reversalFloor = carCall.passenger.getDestinationFloor();
 								continue;
 							}
 							
@@ -554,35 +566,367 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 					return tiAttendingPart1 + tiAttendingPart2;
 				}
 			}
-//		case P3:
-//			
-//			break;
+		case P3:
+			{
+				//The third case
+				//Part 1
+				Set<Integer> CiBefore = new HashSet<>();		
+				for (PassengerCall carCall : elevatorData.carCalls) {
+					CiBefore.add(carCall.passenger.getDestinationFloor());
+				}
+				
+				Set<Integer> HiBefore = new HashSet<>();				
+				for (PassengerCall hallCall : elevatorData.hallCalls) {
+					if (hallCall.type == PassageType.P1) {
+						HiBefore.add(hallCall.passenger.getArrivalFloor());
+					}
+				}
+				
+				double tiAttendingPart1 = this.calculateTiAttending(simulator, elevatorData.elevatorCar, passengerToHandle, CiBefore, HiBefore);
+				HiBefore.clear();
+				CiBefore.clear();
+				
+				//Part 2
+				//Calculate the reversal floor
+				int reversalFloor = -1;
+				
+				for (PassengerCall carCall : elevatorData.carCalls) {
+					if (carCall.type == PassageType.P1) {
+						if (reversalFloor == -1) {
+							reversalFloor = carCall.passenger.getDestinationFloor();
+							continue;
+						}
+						
+						if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+							if (carCall.passenger.getDestinationFloor() > reversalFloor) {
+								reversalFloor = carCall.passenger.getDestinationFloor();
+							}
+						} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+							if (carCall.passenger.getDestinationFloor() < reversalFloor) {
+								reversalFloor = carCall.passenger.getDestinationFloor();
+							}
+						}
+					}
+				}
+				
+				for (PassengerCall hallCall : elevatorData.hallCalls) {
+					if (hallCall.type == PassageType.P2) {
+						if (reversalFloor == -1) {
+							reversalFloor = hallCall.passenger.getArrivalFloor();
+							continue;
+						}
+						
+						if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+							if (hallCall.passenger.getArrivalFloor() > reversalFloor) {
+								reversalFloor = hallCall.passenger.getArrivalFloor();
+							}
+						} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+							if (hallCall.passenger.getArrivalFloor() < reversalFloor) {
+								reversalFloor = hallCall.passenger.getArrivalFloor();
+							}
+						}
+					}
+				}
+				
+				CiBefore.clear();
+				HiBefore.clear();
+				
+				int callDelta = Math.abs(reversalFloor - passengerToHandle.getArrivalFloor());
+				for (PassengerCall hallCall : elevatorData.hallCalls) {
+					if (hallCall.type == PassageType.P2) {
+						int delta = Math.abs(reversalFloor - hallCall.passenger.getArrivalFloor());
+						
+						if (delta < callDelta) {	
+							HiBefore.add(hallCall.passenger.getArrivalFloor());
+						}
+					}
+				}
+				
+				double tiAttendingPart2 = this.calculateTiAttending(
+					simulator,
+					reversalFloor,
+					elevatorData.elevatorCar.getDirection().oppositeDir(),
+					passengerToHandle,
+					CiBefore,
+					HiBefore);
+				
+				//Part 3
+				reversalFloor = -1;
+				
+				for (PassengerCall hallCall : elevatorData.hallCalls) {
+					if (reversalFloor == -1) {
+						if (hallCall.type == PassageType.P2) {
+							reversalFloor = hallCall.passenger.getDestinationFloor();
+						} else if (hallCall.type == PassageType.P3) {
+							reversalFloor = hallCall.passenger.getArrivalFloor();
+						}
+						continue;
+					}
+					
+					if (hallCall.type == PassageType.P2) {						
+						if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+							if (hallCall.passenger.getDestinationFloor() > reversalFloor) {
+								reversalFloor = hallCall.passenger.getDestinationFloor();
+							}
+						} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+							if (hallCall.passenger.getDestinationFloor() < reversalFloor) {
+								reversalFloor = hallCall.passenger.getDestinationFloor();
+							}
+						}
+					} else if (hallCall.type == PassageType.P3) {
+						if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+							if (hallCall.passenger.getArrivalFloor() < reversalFloor) {
+								reversalFloor = hallCall.passenger.getArrivalFloor();
+							}
+						} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+							if (hallCall.passenger.getArrivalFloor() > reversalFloor) {
+								reversalFloor = hallCall.passenger.getArrivalFloor();
+							}
+						}
+					}
+				}
+				
+				CiBefore.clear();
+				HiBefore.clear();
+				
+				callDelta = Math.abs(reversalFloor - passengerToHandle.getArrivalFloor());
+				for (PassengerCall hallCall : elevatorData.hallCalls) {
+					if (hallCall.type == PassageType.P3) {
+						int delta = Math.abs(reversalFloor - hallCall.passenger.getArrivalFloor());
+						
+						if (delta < callDelta) {	
+							HiBefore.add(hallCall.passenger.getArrivalFloor());
+						}
+					}
+				}
+				
+				double tiAttendingPart3 = this.calculateTiAttending(
+					simulator,
+					reversalFloor,
+					elevatorData.elevatorCar.getDirection().oppositeDir(),
+					passengerToHandle,
+					CiBefore,
+					HiBefore);
+				
+				return tiAttendingPart1 + tiAttendingPart2 + tiAttendingPart3;
+			}
 		default:
 			return 0.0;
 		}
 	}
 	
-	@Override
-	public void passengerArrived(Simulator simulator, Passenger passenger) {
-		ElevatorData bestElevator = null;
-		PassageType bestType = PassageType.P3;
+	private double calculateTijDelay(Simulator simulator, ElevatorData elevatorData, Passenger newPassenger, PassageType newPassengerCallType, PassengerCall passengerJ) {
+		int numExtraStops = 0;
+		boolean floorExists = false;
 		
-		for (ElevatorData elevator : this.elevators) {
-			PassageType type = this.getType(elevator.elevatorCar, passenger);
-			
-			if (bestElevator == null) {
-				bestElevator = elevator;
-				bestType = type;
-				continue;
-			}
-			
-			if (bestType.isBetter(type)) {
-				bestType = type;
-				bestElevator = elevator;
+		for (PassengerCall carCall : elevatorData.carCalls) {
+			if (passengerJ.passenger.getArrivalFloor() == carCall.passenger.getDestinationFloor()) {
+				floorExists = true;
+				break;
 			}
 		}
 		
-		bestElevator.hallCalls.add(new PassengerCall(bestType, passenger));
+		if (floorExists) {
+			numExtraStops++;
+		}
+		
+		int delta = 0;
+		
+		//Calculate the reversal floor
+		int currentReversalFloor = -1;
+		
+		for (PassengerCall carCall : elevatorData.carCalls) {
+			if (carCall.type == PassageType.P1) {
+				if (currentReversalFloor == -1) {
+					currentReversalFloor = carCall.passenger.getDestinationFloor();
+					continue;
+				}
+				
+				if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+					if (carCall.passenger.getDestinationFloor() > currentReversalFloor) {
+						currentReversalFloor = carCall.passenger.getDestinationFloor();
+					}
+				} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+					if (carCall.passenger.getDestinationFloor() < currentReversalFloor) {
+						currentReversalFloor = carCall.passenger.getDestinationFloor();
+					}
+				}
+			}
+		}
+		
+		for (PassengerCall hallCall : elevatorData.hallCalls) {
+			if (hallCall.type == PassageType.P2) {
+				if (currentReversalFloor == -1) {
+					currentReversalFloor = hallCall.passenger.getArrivalFloor();
+					continue;
+				}
+				
+				if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+					if (hallCall.passenger.getArrivalFloor() > currentReversalFloor) {
+						currentReversalFloor = hallCall.passenger.getArrivalFloor();
+					}
+				} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+					if (hallCall.passenger.getArrivalFloor() < currentReversalFloor) {
+						currentReversalFloor = hallCall.passenger.getArrivalFloor();
+					}
+				}
+			}
+		}
+		
+		if (passengerJ.type == PassageType.P2 && newPassengerCallType != PassageType.P3) {						
+			if (newPassengerCallType == PassageType.P1) {
+				if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+					if (newPassenger.getDestinationFloor() > currentReversalFloor) {
+						delta = newPassenger.getDestinationFloor() - currentReversalFloor;
+					}
+				} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+					if (newPassenger.getDestinationFloor() < currentReversalFloor) {
+						delta = currentReversalFloor - newPassenger.getDestinationFloor();
+					}
+				}
+			} else {
+				if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+					if (newPassenger.getArrivalFloor() > currentReversalFloor) {
+						delta = newPassenger.getArrivalFloor() - currentReversalFloor;
+					}
+				} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+					if (newPassenger.getArrivalFloor() < currentReversalFloor) {
+						delta = currentReversalFloor - newPassenger.getArrivalFloor();
+					}
+				}
+			}
+		} else if (passengerJ.type == PassageType.P3) {
+			if (newPassengerCallType == PassageType.P1) {
+				if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+					if (newPassenger.getDestinationFloor() > currentReversalFloor) {
+						delta = newPassenger.getDestinationFloor() - currentReversalFloor;
+					}
+				} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+					if (newPassenger.getDestinationFloor() < currentReversalFloor) {
+						delta = currentReversalFloor - newPassenger.getDestinationFloor();
+					}
+				}
+			} else if (newPassengerCallType == PassageType.P2) {
+				if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+					if (newPassenger.getArrivalFloor() > currentReversalFloor) {
+						delta = newPassenger.getArrivalFloor() - currentReversalFloor;
+					}
+				} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+					if (newPassenger.getArrivalFloor() < currentReversalFloor) {
+						delta = currentReversalFloor - newPassenger.getArrivalFloor();
+					}
+				}
+			}
+			
+			//If the passenger did not affect the first reversal floor, calculate if it will affect the second
+			if (delta == 0) {
+				currentReversalFloor = -1;
+				
+				for (PassengerCall hallCall : elevatorData.hallCalls) {
+					if (currentReversalFloor == -1) {
+						if (hallCall.type == PassageType.P2) {
+							currentReversalFloor = hallCall.passenger.getDestinationFloor();
+						} else if (hallCall.type == PassageType.P3) {
+							currentReversalFloor = hallCall.passenger.getArrivalFloor();
+						}
+						continue;
+					}
+					
+					if (hallCall.type == PassageType.P2) {						
+						if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+							if (hallCall.passenger.getDestinationFloor() > currentReversalFloor) {
+								currentReversalFloor = hallCall.passenger.getDestinationFloor();
+							}
+						} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+							if (hallCall.passenger.getDestinationFloor() < currentReversalFloor) {
+								currentReversalFloor = hallCall.passenger.getDestinationFloor();
+							}
+						}
+					} else if (hallCall.type == PassageType.P3) {
+						if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+							if (hallCall.passenger.getArrivalFloor() < currentReversalFloor) {
+								currentReversalFloor = hallCall.passenger.getArrivalFloor();
+							}
+						} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+							if (hallCall.passenger.getArrivalFloor() > currentReversalFloor) {
+								currentReversalFloor = hallCall.passenger.getArrivalFloor();
+							}
+						}
+					}
+				}
+				
+				if (newPassengerCallType == PassageType.P2) {
+					if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+						if (newPassenger.getDestinationFloor() < currentReversalFloor) {
+							delta = currentReversalFloor - newPassenger.getDestinationFloor();
+						}
+					} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+						if (newPassenger.getDestinationFloor() > currentReversalFloor) {
+							delta = newPassenger.getDestinationFloor() - currentReversalFloor;
+						}
+					}
+				} else if (newPassengerCallType == PassageType.P3) {
+					if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+						if (newPassenger.getArrivalFloor() < currentReversalFloor) {
+							delta = currentReversalFloor - newPassenger.getArrivalFloor();
+						}
+					} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+						if (newPassenger.getArrivalFloor() > currentReversalFloor) {
+							delta = newPassenger.getArrivalFloor() - currentReversalFloor;
+						}
+					}
+				}
+			}
+		}
+		
+		double stopTime = 
+			ElevatorCarConfiguration.defaultConfiguration().getStartTime()
+			+ ElevatorCarConfiguration.defaultConfiguration().getStopTime()
+			+ ElevatorCarConfiguration.defaultConfiguration().getFloorTime()
+			+ 2 * ElevatorCarConfiguration.defaultConfiguration().getDoorTime();
+		
+		return 
+			ElevatorCarConfiguration.defaultConfiguration().getFloorTime()
+			* delta * 2
+			+ numExtraStops * stopTime;
+	}
+
+	private double calculateTijSum(Simulator simulator, ElevatorData elevatorData, Passenger newPassenger, PassageType newPassengerCallType) {
+		double sum = 0.0;
+		
+		for (PassengerCall hallCall : elevatorData.hallCalls) {
+			int nJPass = this.calculateNkPass(simulator, hallCall.passenger);
+			sum += this.calculateTijDelay(simulator, elevatorData, newPassenger, newPassengerCallType, hallCall) * nJPass;
+		}
+		
+		return sum;
+	}
+	
+	private double calculateTiTotal(Simulator simulator, ElevatorData elevatorData, Passenger newPassenger, PassageType newPassengerCallType) {
+		return 
+			this.calculateTijSum(simulator, elevatorData, newPassenger, newPassengerCallType)
+			+ this.calculateTiAttending(simulator, elevatorData, newPassenger, newPassengerCallType);
+	}
+	
+	@Override
+	public void passengerArrived(Simulator simulator, Passenger passenger) {
+		ElevatorData bestElevatorData = null;
+		PassageType bestType = PassageType.P3;
+		double lowestETA = Double.MAX_VALUE;
+		
+		for (ElevatorData elevatorData : this.elevators) {
+			PassageType type = this.getType(elevatorData.elevatorCar, passenger);
+						
+			double eta = this.calculateTiTotal(simulator, elevatorData, passenger, type);
+			
+			if (eta < lowestETA) {
+				lowestETA = eta;
+				bestType = type;
+				bestElevatorData = elevatorData;
+			}
+		}
+		
+		bestElevatorData.hallCalls.add(new PassengerCall(bestType, passenger));
 	}
 	
 	@Override
@@ -645,6 +989,15 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 	@Override
 	public void onIdle(Simulator simulator, ElevatorCar elevatorCar) {
 
+	}
+	
+	@Override
+	public void onTurned(Simulator simulator, ElevatorCar elevatorCar) {
+		ElevatorData elevatorData = this.elevatorToData.get(elevatorCar);
+		
+		for (PassengerCall hallCall : elevatorData.hallCalls) {
+			hallCall.type = this.getType(elevatorCar, hallCall.passenger);
+		}
 	}
 	
 	@Override

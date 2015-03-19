@@ -67,11 +67,19 @@ public class ControlSystem {
 	}
 	
 	/**
-	 * Marks that the given elevator is idle
-	 * @param elevator The elevator
+	 * Marks that the given elevator car is idle
+	 * @param elevator The elevator car
 	 */
-	public void elevatorIdle(ElevatorCar elevator) {
-		this.scheduler.onIdle(simulator, elevator);
+	public void elevatorIdle(ElevatorCar elevatorCar) {
+		this.scheduler.onIdle(simulator, elevatorCar);
+	}
+	
+	/**
+	 * Marks that the given elevator has turned
+ 	 * @param elevatorCar The elevator car
+	 */
+	public void elevatorTurned(ElevatorCar elevatorCar) {
+		this.scheduler.onTurned(simulator, elevatorCar);
 	}
 	
 	/**

@@ -42,6 +42,8 @@ public class ElevatorCar {
 	private long turnStartTime;
 	private double boardWaitTime = 0.0;
 	
+	private Direction prevDirection;
+	
 	private long numPassengers;
 	
 	/**
@@ -317,6 +319,12 @@ public class ElevatorCar {
 					this.state = State.MOVING;
 					this.lastMovement = timeNow;
 					simulator.elevatorDebugLog(this.id, "Has started.");
+					
+					if (this.direction != this.prevDirection
+						&& this.direction != Direction.NONE
+						&& this.prevDirection != Direction.NONE) {
+						simulator.getControlSystem().elevatorTurned(this);
+					}
 				}
 			}
 			break;
@@ -325,6 +333,7 @@ public class ElevatorCar {
 				if (this.hasStopped(simulator)) {
 					this.state = State.STOPPED;
 					simulator.elevatorDebugLog(this.id, "Has stopped at floor " + this.floor + ".");
+					this.prevDirection = this.direction;
 				}
 			}
 			break;
