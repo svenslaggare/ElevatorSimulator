@@ -83,6 +83,7 @@ public class Simulator {
 	public void moveForward(long duration) {
 		this.building.update(this, duration);
 		this.controlSystem.update(duration);
+		this.stats.update();
 	}
 	
 	/**
@@ -91,17 +92,8 @@ public class Simulator {
 	 */
 	public void log(String line) {
 		if (enableLog) {
-			long simulatedTime = this.clock.elapsedSinceRealTime(0);
-			double numHours = simulatedTime / (60.0 * 60.0 * SimulatorClock.NANOSECONDS_PER_SECOND);
-			double numMin = 60 * (numHours - (int)numHours);
-			double numSec = 60 * (numMin - (int)numMin);
-			
-			int hour = (int)numHours;
-			int min = (int)numMin;
-			int sec = (int)numSec;
-			
-			String timeStr = (hour < 10 ? "0" + hour : hour) + ":" + (min < 10 ? "0" + min : min) + ":" + (sec < 10 ? "0" + sec : sec);
-			System.out.println(timeStr + ": " + line);
+			double simulatedTime = (double)this.clock.elapsedSinceRealTime(0) / SimulatorClock.NANOSECONDS_PER_SECOND;
+			System.out.println(this.clock.formattedTime(simulatedTime) + ": " + line);
 		}
 	}
 	
@@ -183,9 +175,12 @@ public class Simulator {
 			}
 		}	
 		
+		this.stats.done();
+		
 		System.out.println(new Date() + ": Simulation finished.");		
 		System.out.println("--------------------" + this.controlSystem.getSchedulerName() + "--------------------");
 		this.stats.printStats();		
+		this.stats.exportStats();
 	}
 	
 	private boolean run = false;
@@ -206,6 +201,7 @@ public class Simulator {
 		this.clock.reset();
 		this.stats.reset();
 		this.random = new Random(this.randSeed);
+//		this.random = new Random();
 	}
 	
 	/**
@@ -219,6 +215,7 @@ public class Simulator {
 			
 			if (!this.canGenerateArrivals()) {				
 				if (this.floorsEmpty() && this.elevatorsEmpty()) {
+					this.stats.done();
 					this.run = false;				
 					return false;
 				}
@@ -235,6 +232,7 @@ public class Simulator {
 	 */
 	public void printStats() {
 		this.stats.printStats();
+		this.stats.exportStats();
 	}
 	
 	public static void main(String[] args) {
@@ -242,15 +240,15 @@ public class Simulator {
 			0, 80, 70, 90, 80, 115, 120, 90, 80, 90, 80, 100, 80, 80, 50
 		};
 		TrafficProfile.Interval[] arrivalRates = new TrafficProfile.Interval[1];
-		arrivalRates[0] = new TrafficProfile.Interval(0.06, 0, 1);
-//		arrivalRates[0] = new TrafficProfile.Interval(0.06, 1, 0);
+		arrivalRates[0] = new TrafficProfile.Interval(0.06, 1, 0);
+//		arrivalRates[0] = new TrafficProfile.Interval(0.06, 0.45, 0.45);
 		
 		SchedulerCreator creator = new SchedulerCreator() {		
 			@Override
 			public SchedulingAlgorithm createScheduler(Building building) {
 //				return new LongestQueueFirst();
-//				return new Zoning(building.getElevatorCars().length, building);
-				return new ThreePassageGroupElevator(building);
+				return new Zoning(building.getElevatorCars().length, building);
+//				return new ThreePassageGroupElevator(building);
 //				return new RoundRobin(building, false);
 			}
 		};
@@ -260,9 +258,9 @@ public class Simulator {
 				3,
 				ElevatorCarConfiguration.defaultConfiguration(),
 				floors,
-				new TrafficProfile(arrivalRates)),
-//				TrafficProfiles.WEEK_DAY_PROFILE),
-			new SimulatorSettings(0.01, 1 * 60 * 60),
+//				new TrafficProfile(arrivalRates)),
+				TrafficProfiles.WEEK_DAY_PROFILE),
+			new SimulatorSettings(0.01, 24 * 60 * 60),
 			creator);
 		
 		simulator.run();

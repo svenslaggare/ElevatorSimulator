@@ -27,18 +27,15 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 	private List<ElevatorData> elevators = new ArrayList<ElevatorData>();
 	private Map<ElevatorCar, ElevatorData> elevatorToData = new HashMap<>();
 	
+	/**
+	 * The passage type
+	 * @author Anton Jansson
+	 *
+	 */
 	private static enum PassageType {
 		P1,
 		P2,
 		P3;
-		
-		/**
-		 * Indicates if the given passage type is better than the current
-		 * @param passageType The passage type
-		 */
-		public boolean isBetter(PassageType passageType) {
-			return passageType.ordinal() < this.ordinal();
-		}
 	}
 	
 	/**
@@ -297,7 +294,7 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 			for (int l = 2; l <= fik; l++) {
 				double product = 1;
 				
-				for (int j2 = fik - l + 1; j2 <= fik; j2++) {
+				for (int j = fik - l + 1; j <= fik; j++) {
 					product *= Pik;
 				}
 				
@@ -330,7 +327,7 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 		return Pik + sik + liNet + fiFarthest + skjMandatory + skjExtra;
 	}
 		
-	private double calculateTiAttending(Simulator simulator, int elevatorFloor, Direction elevatorDir, Passenger passengerToHandle, Set<Integer> CiBefore, Set<Integer> HiBefore) {
+	private double calculateTiAttending(Simulator simulator, int elevatorFloor, Direction elevatorDir, Passenger passengerToHandle, PassageType callType, Set<Integer> CiBefore, Set<Integer> HiBefore) {
 		double tikNonstop = 
 				Math.abs(passengerToHandle.getDestinationFloor() - elevatorFloor)
 				* ElevatorCarConfiguration.defaultConfiguration().getFloorTime();
@@ -351,9 +348,15 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 		
 		for (int floor : HiBefore) {
 			double skjMandatoryFloor = this.calculateSkjManadatory(simulator, floor, passengerToHandle.getArrivalFloor());
-			sikExtraSum += this.calculateSkjExtra(sik, skjMandatoryFloor, fik, elevatorFloor, passengerToHandle.getArrivalFloor());
+			double skjExtraFloor = this.calculateSkjExtra(sik, skjMandatoryFloor, fik, floor, passengerToHandle.getArrivalFloor());
+			
+			if (skjExtraFloor < 0) {
+				skjExtraFloor *= 1;
+			}
+			
+			sikExtraSum += skjExtraFloor;
 		}
-		
+				
 		double ts = this.calculateStopTime(Pik, sik, liNet, fiFarthest, skjMandatory, skjExtra);
 		
 		Set<Integer> CHiBefore = new HashSet<>();
@@ -366,17 +369,33 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 //			System.out.println(
 //				"Negative tiAttending: (" + tiAttending + "): "
 //				+ passengerToHandle.getArrivalFloor() + "->" + passengerToHandle.getDestinationFloor()
-//				+ " (Elevator floor: " + elevatorFloor + ")");
+//				+ " (Elevator floor: " + elevatorFloor + ")"
+//				+ " Elevator dir: " + elevatorDir
+//				+ " Passenger dir: " + passengerToHandle.getDirection()
+//				+ " Call type: " + callType
+//				+ " HiBefore: " + HiBefore);
 //		}
 		
 		return tiAttending;		
 	}
 	
-	private double calculateTiAttending(Simulator simulator, ElevatorCar elevatorCar, Passenger passengerToHandle, Set<Integer> CiBefore, Set<Integer> HiBefore) {
-		return calculateTiAttending(simulator, elevatorCar.getFloor(), elevatorCar.getDirection(), passengerToHandle, CiBefore, HiBefore);
+	private double calculateTiAttending(Simulator simulator, ElevatorCar elevatorCar, Passenger passengerToHandle, PassageType callType, Set<Integer> CiBefore, Set<Integer> HiBefore) {
+		Direction elevatorDir = elevatorCar.getDirection();
+		
+		if (elevatorDir == Direction.NONE) {
+			elevatorDir = passengerToHandle.getDirection();
+		}
+
+		return calculateTiAttending(simulator, elevatorCar.getFloor(), elevatorDir, passengerToHandle, callType, CiBefore, HiBefore);
 	}
 	
 	private double calculateTiAttending(Simulator simulator, ElevatorData elevatorData, Passenger passengerToHandle, PassageType callType) {
+		Direction elevatorDir = elevatorData.elevatorCar.getDirection();
+		
+//		if (elevatorDir == Direction.NONE) {
+//			elevatorDir = passengerToHandle.getDirection();
+//		}
+		
 		switch (callType) {
 		case P1:
 			{
@@ -405,8 +424,14 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 						}
 					}
 				}
-				
-				return this.calculateTiAttending(simulator, elevatorData.elevatorCar, passengerToHandle, CiBefore, HiBefore);
+												
+				return this.calculateTiAttending(
+					simulator,
+					elevatorData.elevatorCar,
+					passengerToHandle,
+					callType,
+					CiBefore,
+					HiBefore);
 			}
 		case P2:
 			{
@@ -440,11 +465,11 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 								continue;
 							}
 							
-							if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+							if (elevatorDir == Direction.UP) {
 								if (hallCall.passenger.getArrivalFloor() > reversalFloor) {
 									reversalFloor = hallCall.passenger.getArrivalFloor();
 								}
-							} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+							} else if (elevatorDir == Direction.DOWN) {
 								if (hallCall.passenger.getArrivalFloor() < reversalFloor) {
 									reversalFloor = hallCall.passenger.getArrivalFloor();
 								}
@@ -478,28 +503,43 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 							}
 						}
 					}
-					
-					return this.calculateTiAttending(simulator, elevatorData.elevatorCar, passengerToHandle, CiBefore, HiBefore);
+										
+					double tiAttending = this.calculateTiAttending(
+						simulator,
+						elevatorData.elevatorCar,
+						passengerToHandle,
+						callType,
+						CiBefore,
+						HiBefore);
+										
+					return tiAttending;
 				} else {
 					//The second case
 					
 					//Part 1
 					Set<Integer> CiBefore = new HashSet<>();		
 					for (PassengerCall carCall : elevatorData.carCalls) {
-						CiBefore.add(carCall.passenger.getDestinationFloor());
+						if (passengerToHandle.getArrivalFloor() != carCall.passenger.getDestinationFloor()) {
+							CiBefore.add(carCall.passenger.getDestinationFloor());
+						}
 					}
 					
 					Set<Integer> HiBefore = new HashSet<>();				
 					for (PassengerCall hallCall : elevatorData.hallCalls) {
-						if (hallCall.type == PassageType.P1) {
+						if (hallCall.type == PassageType.P1 && passengerToHandle.getArrivalFloor() != hallCall.passenger.getArrivalFloor()) {
 							HiBefore.add(hallCall.passenger.getArrivalFloor());
 						}
 					}
 					
-					double tiAttendingPart1 = this.calculateTiAttending(simulator, elevatorData.elevatorCar, passengerToHandle, CiBefore, HiBefore);
+					double tiAttendingPart1 = this.calculateTiAttending(
+						simulator,
+						elevatorData.elevatorCar,
+						passengerToHandle,
+						callType,
+						CiBefore,
+						HiBefore);
 					
-					//Part 2
-					
+					//Part 2				
 					//Calculate the reversal floor
 					int reversalFloor = -1;
 					
@@ -510,11 +550,11 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 								continue;
 							}
 							
-							if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+							if (elevatorDir == Direction.UP) {
 								if (carCall.passenger.getDestinationFloor() > reversalFloor) {
 									reversalFloor = carCall.passenger.getDestinationFloor();
 								}
-							} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+							} else if (elevatorDir == Direction.DOWN) {
 								if (carCall.passenger.getDestinationFloor() < reversalFloor) {
 									reversalFloor = carCall.passenger.getDestinationFloor();
 								}
@@ -529,11 +569,11 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 								continue;
 							}
 							
-							if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+							if (elevatorDir == Direction.UP) {
 								if (hallCall.passenger.getArrivalFloor() > reversalFloor) {
 									reversalFloor = hallCall.passenger.getArrivalFloor();
 								}
-							} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+							} else if (elevatorDir == Direction.DOWN) {
 								if (hallCall.passenger.getArrivalFloor() < reversalFloor) {
 									reversalFloor = hallCall.passenger.getArrivalFloor();
 								}
@@ -560,9 +600,10 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 						reversalFloor,
 						elevatorData.elevatorCar.getDirection().oppositeDir(),
 						passengerToHandle,
+						callType,
 						CiBefore,
-						HiBefore);
-					
+						HiBefore);			
+										
 					return tiAttendingPart1 + tiAttendingPart2;
 				}
 			}
@@ -572,17 +613,19 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 				//Part 1
 				Set<Integer> CiBefore = new HashSet<>();		
 				for (PassengerCall carCall : elevatorData.carCalls) {
-					CiBefore.add(carCall.passenger.getDestinationFloor());
+					if (passengerToHandle.getArrivalFloor() != carCall.passenger.getDestinationFloor()) {
+						CiBefore.add(carCall.passenger.getDestinationFloor());
+					}
 				}
 				
 				Set<Integer> HiBefore = new HashSet<>();				
 				for (PassengerCall hallCall : elevatorData.hallCalls) {
-					if (hallCall.type == PassageType.P1) {
+					if (hallCall.type == PassageType.P1 && passengerToHandle.getArrivalFloor() != hallCall.passenger.getArrivalFloor()) {
 						HiBefore.add(hallCall.passenger.getArrivalFloor());
 					}
 				}
 				
-				double tiAttendingPart1 = this.calculateTiAttending(simulator, elevatorData.elevatorCar, passengerToHandle, CiBefore, HiBefore);
+				double tiAttendingPart1 = this.calculateTiAttending(simulator, elevatorData.elevatorCar, passengerToHandle, callType, CiBefore, HiBefore);
 				HiBefore.clear();
 				CiBefore.clear();
 				
@@ -597,11 +640,11 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 							continue;
 						}
 						
-						if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+						if (elevatorDir == Direction.UP) {
 							if (carCall.passenger.getDestinationFloor() > reversalFloor) {
 								reversalFloor = carCall.passenger.getDestinationFloor();
 							}
-						} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+						} else if (elevatorDir == Direction.DOWN) {
 							if (carCall.passenger.getDestinationFloor() < reversalFloor) {
 								reversalFloor = carCall.passenger.getDestinationFloor();
 							}
@@ -616,11 +659,11 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 							continue;
 						}
 						
-						if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+						if (elevatorDir == Direction.UP) {
 							if (hallCall.passenger.getArrivalFloor() > reversalFloor) {
 								reversalFloor = hallCall.passenger.getArrivalFloor();
 							}
-						} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+						} else if (elevatorDir == Direction.DOWN) {
 							if (hallCall.passenger.getArrivalFloor() < reversalFloor) {
 								reversalFloor = hallCall.passenger.getArrivalFloor();
 							}
@@ -647,6 +690,7 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 					reversalFloor,
 					elevatorData.elevatorCar.getDirection().oppositeDir(),
 					passengerToHandle,
+					callType,
 					CiBefore,
 					HiBefore);
 				
@@ -664,21 +708,21 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 					}
 					
 					if (hallCall.type == PassageType.P2) {						
-						if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+						if (elevatorDir == Direction.UP) {
 							if (hallCall.passenger.getDestinationFloor() > reversalFloor) {
 								reversalFloor = hallCall.passenger.getDestinationFloor();
 							}
-						} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+						} else if (elevatorDir == Direction.DOWN) {
 							if (hallCall.passenger.getDestinationFloor() < reversalFloor) {
 								reversalFloor = hallCall.passenger.getDestinationFloor();
 							}
 						}
 					} else if (hallCall.type == PassageType.P3) {
-						if (elevatorData.elevatorCar.getDirection() == Direction.UP) {
+						if (elevatorDir == Direction.UP) {
 							if (hallCall.passenger.getArrivalFloor() < reversalFloor) {
 								reversalFloor = hallCall.passenger.getArrivalFloor();
 							}
-						} else if (elevatorData.elevatorCar.getDirection() == Direction.DOWN) {
+						} else if (elevatorDir == Direction.DOWN) {
 							if (hallCall.passenger.getArrivalFloor() > reversalFloor) {
 								reversalFloor = hallCall.passenger.getArrivalFloor();
 							}
@@ -705,6 +749,7 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 					reversalFloor,
 					elevatorData.elevatorCar.getDirection().oppositeDir(),
 					passengerToHandle,
+					callType,
 					CiBefore,
 					HiBefore);
 				

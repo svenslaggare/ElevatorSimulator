@@ -20,6 +20,13 @@ public class SimulatorClock {
 	}
 	
 	/**
+	 * Returns the current time in seconds
+	 */
+	public double timeNowSec() {
+		return this.simulatedTime;
+	}
+	
+	/**
 	 * Returns the current time
 	 */
 	public long timeNow() {
@@ -71,6 +78,22 @@ public class SimulatorClock {
 	 */
 	public long minutesToTime(double minutes) {
 		return (long)((minutes * 60) / TIME_SCALE);
+	}
+	
+	/**
+	 * Returns a formatted string for the given time
+	 * @param timeInSec The time in seconds
+	 */
+	public String formattedTime(double timeInSec) {
+		double numHours = timeInSec / (60.0 * 60.0);
+		double numMin = 60 * (numHours - (int)numHours);
+		double numSec = 60 * (numMin - (int)numMin);
+		
+		int hour = (int)numHours;
+		int min = (int)numMin;
+		int sec = (int)numSec;
+		
+		return (hour < 10 ? "0" + hour : hour) + ":" + (min < 10 ? "0" + min : min) + ":" + (sec < 10 ? "0" + sec : sec);
 	}
 	
 	/**

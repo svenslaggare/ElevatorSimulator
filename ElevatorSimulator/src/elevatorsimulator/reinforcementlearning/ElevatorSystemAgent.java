@@ -1,13 +1,11 @@
-package elevatorsimulator.reinforcementlearning2;
+package elevatorsimulator.reinforcementlearning;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import marl.agents.Agent;
-import marl.agents.learning.qlearning.BoltzmannQLearning;
 import marl.agents.learning.qlearning.EGreedyQLearning;
-import marl.agents.learning.sarsa.EGreedySarsa;
 import marl.utility.Config;
 
 /**
@@ -28,7 +26,8 @@ public class ElevatorSystemAgent extends Agent<ElevatorSystemEnvironment> {
 	public enum Action {
 		LONGEST_QUEUE_FIRST,
 		ZONING,
-		ROUND_ROBIN
+		ROUND_ROBIN,
+		THREE_PASSAGE_GROUP_ELEVATOR
 	}
 	
 	/**

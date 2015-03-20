@@ -110,7 +110,11 @@ public class Passenger {
 	 * @param clock The simulator clock
 	 */
 	public long waitTime(SimulatorClock clock) {
-		return clock.durationFromRealTime(this.timeOfRideStarted - this.timeOfArrival);
+		if (this.boarded) {
+			return clock.durationFromRealTime(this.timeOfRideStarted - this.timeOfArrival);
+		} else {
+			return clock.durationFromRealTime(clock.timeNow() - this.timeOfArrival);
+		}
 	}
 	
 	/**

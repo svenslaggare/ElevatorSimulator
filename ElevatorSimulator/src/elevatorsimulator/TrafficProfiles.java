@@ -65,7 +65,7 @@ public class TrafficProfiles {
 		arrivalRates[7 * 6 + 5] = new Interval(0.0255, 0.05, 0.90);
 		
 		//08 to 09
-		arrivalRates[8 * 6] = new Interval(0.0260, 0.06, 0.84);
+		arrivalRates[8 * 6] = new Interval(0.0260, 0.06, 0.89);
 		arrivalRates[8 * 6 + 1] = new Interval(0.0245, 0.07, 0.88);
 		arrivalRates[8 * 6 + 2] = new Interval(0.0230, 0.08, 0.87);
 		arrivalRates[8 * 6 + 3] = new Interval(0.0215, 0.09, 0.86);
@@ -166,6 +166,27 @@ public class TrafficProfiles {
 				arrivalRates[i] = new Interval(0, 0, 0);
 			}
 		}	
+		
+//		for (int hour = 0; hour < 24; hour++) {
+//			double totalAR = 0.0;
+//			double totalUp = 0.0;
+//			double totalDown = 0.0;
+//			double totalInterfloor = 0.0;
+//			
+//			for (int i = hour * 6; i < (hour + 1) * 6; i++) {
+//				Interval interval = arrivalRates[i];
+//				totalAR += interval.getAverageArrivalRatio() / 2;
+//				totalUp += interval.getUpRate();
+//				totalDown += interval.getDownRate();
+//				totalInterfloor += interval.getInterfloorRate();
+//			}
+//			
+//			System.out.println(
+//				"Hour: " + hour + " AR: " + (totalAR / 6) * 100
+//				 + " Up: " + (totalUp / 6) * 100
+//				 + " Down: " + (totalDown / 6) * 100
+//				 + " Interfloor: " + (totalInterfloor / 6) * 100);
+//		}
 		
 		WEEK_DAY_PROFILE = new TrafficProfile(arrivalRates);
 	}
