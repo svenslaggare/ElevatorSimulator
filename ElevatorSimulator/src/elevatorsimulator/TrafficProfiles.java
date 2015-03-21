@@ -13,6 +13,10 @@ public class TrafficProfiles {
 	 */
 	public static final TrafficProfile WEEK_DAY_PROFILE;
 	
+	private TrafficProfiles() {
+		
+	}
+	
 	static {
 		Interval[] arrivalRates = new Interval[24 * 6];
 		double arrival = 0.0;

@@ -9,11 +9,11 @@ import elevatorsimulator.schedulers.*;
  *
  */
 public class Simulator {
+	private final String scenarioName;
 	private final SimulatorSettings settings;
 	private final SimulatorClock clock;
 	
-//	private final long randSeed = System.currentTimeMillis();
-	private final long randSeed = 1337;
+	private final long randSeed;
 	private Random random;
 	
 	private final SimulatorStats stats;
@@ -33,12 +33,37 @@ public class Simulator {
 	 * @param scheduler The scheduler
 	 */
 	public Simulator(Scenario scenario, SimulatorSettings settings, SchedulerCreator schedulerCreator) {
+		this(scenario, settings, schedulerCreator, -1);
+	}
+	
+	/**
+	 * Creates a new simulator
+	 * @param scenario The scenario
+	 * @param settings The settings
+	 * @param scheduler The scheduler
+	 * @param randSeed The random seed
+	 */
+	public Simulator(Scenario scenario, SimulatorSettings settings, SchedulerCreator schedulerCreator, long randSeed) {		
+		if (randSeed == -1) {
+			randSeed = System.currentTimeMillis();
+		}
+		
+		this.randSeed = randSeed;
+		this.random = new Random(this.randSeed);
+		
+		this.scenarioName = scenario.getName();
 		this.settings = settings;
 		this.clock = new SimulatorClock(settings.getTimeStep());
 		this.building = scenario.createBuilding();
 		this.controlSystem = new ControlSystem(this, schedulerCreator.createScheduler(this.building));
 		this.stats = new SimulatorStats(this);
-		this.random = new Random(this.randSeed);
+	}
+	
+	/**
+	 * Returns the name of the simulation
+	 */
+	private String getSimulationName() {
+		return this.scenarioName + "-" + this.controlSystem.getSchedulerName();
 	}
 	
 	/**
@@ -180,7 +205,7 @@ public class Simulator {
 		System.out.println(new Date() + ": Simulation finished.");		
 		System.out.println("--------------------" + this.controlSystem.getSchedulerName() + "--------------------");
 		this.stats.printStats();		
-		this.stats.exportStats();
+		this.stats.exportStats(this.getSimulationName());
 	}
 	
 	private boolean run = false;
@@ -200,8 +225,8 @@ public class Simulator {
 		this.building.reset();
 		this.clock.reset();
 		this.stats.reset();
-		this.random = new Random(this.randSeed);
-//		this.random = new Random();
+//		this.random = new Random(this.randSeed);
+		this.random = new Random();
 	}
 	
 	/**
@@ -232,13 +257,18 @@ public class Simulator {
 	 */
 	public void printStats() {
 		this.stats.printStats();
-		this.stats.exportStats();
+		this.stats.exportStats(this.getSimulationName());
 	}
 	
 	public static void main(String[] args) {
+//		int[] floors = new int[] {
+//			0, 80, 70, 90, 80, 115, 120, 90, 80, 90, 80, 100, 80, 80, 50
+//		};
+		
 		int[] floors = new int[] {
-			0, 80, 70, 90, 80, 115, 120, 90, 80, 90, 80, 100, 80, 80, 50
+			0, 70, 70, 75, 85, 75, 80, 90, 90, 85, 75, 80, 75, 90, 70, 70
 		};
+		
 		TrafficProfile.Interval[] arrivalRates = new TrafficProfile.Interval[1];
 		arrivalRates[0] = new TrafficProfile.Interval(0.06, 1, 0);
 //		arrivalRates[0] = new TrafficProfile.Interval(0.06, 0.45, 0.45);
@@ -255,13 +285,15 @@ public class Simulator {
 		
 		Simulator simulator = new Simulator(
 			new Scenario(
+				"Testing",
 				3,
 				ElevatorCarConfiguration.defaultConfiguration(),
 				floors,
 //				new TrafficProfile(arrivalRates)),
 				TrafficProfiles.WEEK_DAY_PROFILE),
 			new SimulatorSettings(0.01, 24 * 60 * 60),
-			creator);
+			creator,
+			1337);
 		
 		simulator.run();
 	}

@@ -6,6 +6,7 @@ package elevatorsimulator;
  *
  */
 public class Scenario {
+	private final String name;
 	private final int numElevatorCars;
 	private final int[] floorResidents;
 	private final TrafficProfile trafficProfile;
@@ -14,18 +15,27 @@ public class Scenario {
 	
 	/**
 	 * Creates a new scenario
+	 * @param name The name of the scenario
 	 * @param numElevatorCars The number of elevator cars
 	 * @param elevatorCarConfiguration The configuration for the elevator car
 	 * @param floorResidents The residents on each floor
 	 * @param trafficProfile The traffic profile
 	 */
-	public Scenario(int numElevatorCars, ElevatorCarConfiguration elevatorCarConfiguration, int[] floorResidents, TrafficProfile trafficProfile) {
+	public Scenario(String name, int numElevatorCars, ElevatorCarConfiguration elevatorCarConfiguration, int[] floorResidents, TrafficProfile trafficProfile) {
+		this.name = name;
 		this.numElevatorCars = numElevatorCars;
 		this.elevatorCarConfiguration = elevatorCarConfiguration;
 		this.floorResidents = floorResidents;
 		this.trafficProfile = trafficProfile;
 	}
 		
+	/**
+	 * Returns the size of the building
+	 */
+	public String getName() {
+		return this.name;
+	}
+	
 	/**
 	 * Creates a new building
 	 */

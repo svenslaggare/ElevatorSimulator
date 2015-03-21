@@ -12,7 +12,6 @@ import elevatorsimulator.SchedulingAlgorithm;
 import elevatorsimulator.Simulator;
 import elevatorsimulator.SimulatorClock;
 import elevatorsimulator.SimulatorSettings;
-import elevatorsimulator.TrafficProfile;
 import elevatorsimulator.TrafficProfiles;
 import elevatorsimulator.schedulers.LongestQueueFirst;
 import elevatorsimulator.schedulers.MultiScheduler;
@@ -42,12 +41,7 @@ public class RISimulator {
 		int[] floors = new int[] {
 			0, 80, 70, 90, 80, 115, 120, 90, 80, 90, 80, 100, 80, 80, 50
 		};
-		
-		TrafficProfile.Interval[] arrivalRates = new TrafficProfile.Interval[1];
-		arrivalRates[0] = new TrafficProfile.Interval(0.03, 0.45, 0.45);
-//		arrivalRates[0] = new TrafficProfile.Interval(0.03, 0, 1.0);
-//		arrivalRates[0] = new TrafficProfile.Interval(0.03, 1, 0.0);
-		
+
 		SchedulerCreator creator = new SchedulerCreator() {		
 			@Override
 			public SchedulingAlgorithm createScheduler(Building building) {
@@ -62,10 +56,10 @@ public class RISimulator {
 		
 		Simulator simulator = new Simulator(
 			new Scenario(
+				"Testing",
 				3,
 				ElevatorCarConfiguration.defaultConfiguration(),
 				floors,
-//				new TrafficProfile(arrivalRates)),
 				TrafficProfiles.WEEK_DAY_PROFILE),
 			new SimulatorSettings(0.01, 24 * 60 * 60),
 			creator);

@@ -66,7 +66,7 @@ public class Zoning implements SchedulingAlgorithm {
 
 		double totalSpill = 0;
 		int handledFloors = 0;
-		
+				
 		for (int zone = 0; zone < numZones; zone++) {
 			List<ElevatorCar> zoneElevators = new ArrayList<ElevatorCar>();
 			List<Floor> zoneFloors = new ArrayList<Floor>();
@@ -76,9 +76,9 @@ public class Zoning implements SchedulingAlgorithm {
 			totalSpill += spillPerFloor;
 			int minFloor = handledFloors;
 			int maxFloor = handledFloors + floorsPerZone - 1;
-			
-			if (totalSpill >= 1.0) {
-				totalSpill -= 1.0;
+						
+			if (totalSpill >= 1.0 - 0.00001) {
+				totalSpill = Math.max(0, totalSpill - 1.0);
 				maxFloor++;
 			}
 								

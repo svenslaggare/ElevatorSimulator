@@ -311,30 +311,16 @@ public class SimulatorStats {
 	
 	/**
 	 * Exports the statistics
+	 * @param fileName The name of the file to export to
 	 */
-	public void exportStats() {
-//		for (StatsInterval interval : this.statsIntervals) {
-//			System.out.println("-----------------------" + this.clock.formattedTime(interval.getStartTime()) + "-----------------------");
-//			System.out.println("Number generated passengers: " + interval.numGenerated);
-//			System.out.println("Number served passengers: " + interval.numExists);
-//			System.out.println("Average wait time: " + interval.averageWaitTime(this.clock) + " s");
-//			System.out.println("Average squared wait time: " + interval.averageSquaredWaitTime() + " s");
-//			System.out.println("Average ride time: " + interval.averageRideTime(this.clock) + " s");
-//			System.out.println("Wait times over 60 sec: " + interval.percentageOver60s() + "%");
-//			
-//			System.out.println("Number of up travels: " + interval.numUp);
-//			System.out.println("Number of down travels: " + interval.numDown);
-//			System.out.println("Number of interfloor travels: " + interval.numInterfloors);
-//			System.out.println();
-//		}
-		
+	public void exportStats(String fileName) {
 		try {
 			File dataDir = new File("data");
 			if (!dataDir.exists()) {
 				dataDir.mkdir();
 			}
 			
-			BufferedWriter writer = new BufferedWriter(new FileWriter("data/stats.csv"));
+			BufferedWriter writer = new BufferedWriter(new FileWriter("data/" + fileName + ".csv"));
 			writer.write("Hour;");
 			writer.write("Number generated passengers;");
 			writer.write("Number served passengers;");

@@ -31,34 +31,24 @@ public class SimulatorRunner {
 	 * Runs the simulator with the specified scenarios, schedulers and traffic profiles
 	 */
 	public void run() {
-		int i = 0;
 		for (Scenario scenario : this.scenarios) {
-			System.out.println("----------------Running scenario #" + i + "----------------");
+			System.out.println("----------------Running scenario " + scenario.getName() +  "----------------");
+			long randSeed = System.currentTimeMillis();
 			for (SchedulerCreator schedulerCreator : this.schedulerCreators) {
-				Simulator simulator = new Simulator(scenario, this.settings, schedulerCreator);
+				Simulator simulator = new Simulator(scenario, this.settings, schedulerCreator, randSeed);
 				simulator.run();
 			}
 			System.out.println("----------------End scenario----------------");
-			
-			i++;
 		}
 	}
 	
 	public static void main(String[] args) {
 		List<Scenario> scenarios = new ArrayList<Scenario>();
 		
-		int[] floors = new int[] {
-			0, 80, 70, 90, 80, 115, 120, 90, 80, 90, 80, 100, 80, 80, 50
-		};
-			
-//		TrafficProfile.Interval[] upPeakScenario = new TrafficProfile.Interval[1];
-//		upPeakScenario[0] = new TrafficProfile.Interval(0.03, 0.9, 0.1);		
-//		scenarios.add(new Scenario(3, ElevatorCarConfiguration.defaultConfiguration(), floors, new TrafficProfile(upPeakScenario)));
-//				
-//		TrafficProfile.Interval[] downPeakScenario = new TrafficProfile.Interval[1];
-//		downPeakScenario[0] = new TrafficProfile.Interval(0.03, 0.1, 0.9);		
-//		scenarios.add(new Scenario(3, ElevatorCarConfiguration.defaultConfiguration(), floors, new TrafficProfile(downPeakScenario)));
-		scenarios.add(new Scenario(3, ElevatorCarConfiguration.defaultConfiguration(), floors, TrafficProfiles.WEEK_DAY_PROFILE));
+		scenarios.add(Scenarios.createMediumBuilding(2));
+		scenarios.add(Scenarios.createMediumBuilding(3));
+		scenarios.add(Scenarios.createLargeBuilding(3));
+		scenarios.add(Scenarios.createLargeBuilding(4));
 		
 		List<SchedulerCreator> schedulerCreators = new ArrayList<SchedulerCreator>();
 		schedulerCreators.add(new SchedulerCreator() {		
