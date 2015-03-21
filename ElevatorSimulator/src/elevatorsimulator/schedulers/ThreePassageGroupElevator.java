@@ -971,6 +971,15 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 			}
 		}
 		
+//		if (passenger.getId() == 1259) {
+//			System.out.println(
+//				"elevator: " + bestElevatorData.elevatorCar.getId()
+//				+ " floor: " + bestElevatorData.elevatorCar.getFloor()
+//				+ " hall: " + bestElevatorData.hallCalls.size()
+//				+ " car: " + bestElevatorData.carCalls.size()
+//				+ " time: " + passenger.getTimeOfArrival());
+//		}
+		
 		bestElevatorData.hallCalls.add(new PassengerCall(bestType, passenger));
 	}
 	
@@ -979,9 +988,15 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 		ElevatorData elevatorData = this.elevatorToData.get(elevatorCar);
 		PassengerCall hallCall = this.findHallCall(elevatorData, passenger);
 		
+//		if (passenger.getId() == 1259) {
+//			System.out.println("boarded at " + passenger.getTimeOfRideStarted() + " elevator: " +  elevatorCar.getId());
+//		}
+				
 		if (hallCall != null) {
 			elevatorData.hallCalls.remove(hallCall);
 			elevatorData.carCalls.add(hallCall);
+		} else {
+			elevatorData.carCalls.add(new PassengerCall(PassageType.P1, passenger));
 		}
 	}
 	
@@ -1005,7 +1020,7 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 				
 				for (PassengerCall hallCall : elevatorData.hallCalls) {
 					Passenger passenger = hallCall.passenger;
-					PassageType type = this.getType(elevatorCar, passenger);
+					PassageType type = hallCall.type;
 					
 					if (type == PassageType.P1) {
 						if (passenger.getArrivalFloor() == elevatorCar.nextFloor()) {
@@ -1018,7 +1033,7 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 				if (stopAtNext) {
 					elevatorCar.stopElevatorAtNextFloor();
 				}
-			} else if (elevatorCar.getState() == State.IDLE) {				
+			} else if (elevatorCar.getState() == State.IDLE) {						
 				Passenger toHandle = null;
 				if (!elevatorData.hallCalls.isEmpty()) {
 					toHandle = elevatorData.hallCalls.remove().passenger;

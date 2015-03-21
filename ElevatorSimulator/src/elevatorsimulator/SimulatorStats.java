@@ -1,8 +1,5 @@
 package elevatorsimulator;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,20 +12,10 @@ public class SimulatorStats {
 	private final SimulatorClock clock;
 	private final Simulator simulator;
 	private final long numResidents;
-	private long numGenerated;
-	private long numExists;
 	
+	private StatsInterval globalInterval = StatsInterval.newTimeInterval(0);
 	private final int[] passengerFloorArrivals;
 	private final int[] passengerFloorExits;
-	
-	private long numUp;
-	private long numDown;
-	private long numInterfloors;
-	
-	private long totalWaitTime;
-	private double totalSquaredWaitTime;
-	private long totalRideTime;
-	private long numWaitsOver60s;
 	
 	private final ElevatorCar[] elevatorCars;
 	private boolean printFloorsAndElevators = false;
@@ -38,141 +25,11 @@ public class SimulatorStats {
 	
 	private StatsInterval currentStatsInterval = StatsInterval.newTimeInterval(0);
 	private final List<StatsInterval> statsIntervals = new ArrayList<StatsInterval>();
-	private final double intervalLengthSec = 60 * 60;
 	
 	/**
-	 * Contains statistics about an interval
-	 * @author Anton Jansson
-	 *
+	 * The lengtho of a stats interval in seconds
 	 */
-	public static class StatsInterval {
-		private final double startTime;
-		private final int num;
-		
-		private long numGenerated;
-		private long numExists;
-				
-		private long numUp;
-		private long numDown;
-		private long numInterfloors;
-		
-		private long totalWaitTime;
-		private double totalSquaredWaitTime;
-		private long totalRideTime;
-		private long numWaitsOver60s;
-		
-		/**
-		 * Creates a new interval
-		 * @param startTime The start time of the interval
-		 */
-		private StatsInterval(double startTime) {
-			this.startTime = startTime;
-			this.num = -1;
-		}
-		
-		/**
-		 * Creates a new interval
-		 * @param num The number of the interval
-		 */
-		private StatsInterval(int num) {
-			this.num = num;
-			this.startTime = -1;
-		}
-		
-		/**
-		 * Creates a new time-based interval
-		 * @param startTime The start time
-		 */
-		public static StatsInterval newTimeInterval(double startTime) {
-			return new StatsInterval(startTime);
-		}
-		
-		/**
-		 * Creates a new poll-based interval
-		 * @param num The number of the interval
-		 */
-		public static StatsInterval newPollInterval(int num) {
-			return new StatsInterval(num);
-		}
-		
-		/**
-		 * Returns the start time of the interval in seconds since the simulation started
-		 */
-		public double getStartTime() {
-			return this.startTime;
-		}
-
-		/**
-		 * Returns the interval number
-		 */
-		public int getNum() {
-			return this.num;
-		}
-		
-		public long getNumGenerated() {
-			return numGenerated;
-		}
-
-		public long getNumExists() {
-			return numExists;
-		}
-
-		public long getNumUp() {
-			return numUp;
-		}
-
-		public long getNumDown() {
-			return numDown;
-		}
-
-		public long getNumInterfloors() {
-			return numInterfloors;
-		}
-
-		public long getTotalWaitTime() {
-			return totalWaitTime;
-		}
-
-		public double getTotalSquaredWaitTime() {
-			return totalSquaredWaitTime;
-		}
-
-		public long getTotalRideTime() {
-			return totalRideTime;
-		}
-
-		public long getNumWaitsOver60s() {
-			return numWaitsOver60s;
-		}
-				
-		/**
-		 * Calculates the average wait time
-		 */
-		public double averageWaitTime(SimulatorClock clock) {
-			return clock.asSecond(this.totalWaitTime) / (double)this.numExists;
-		}
-		
-		/**
-		 * Calculates the average squared wait time
-		 */
-		public double averageSquaredWaitTime() {
-			return this.totalSquaredWaitTime / (double)this.numExists;
-		}
-		
-		/**
-		 * Calculates the average ride time
-		 */
-		public double averageRideTime(SimulatorClock clock) {
-			return clock.asSecond(this.totalRideTime) / (double)this.numExists;
-		}
-		
-		/**
-		 * Returns the % of the wait times over 60 s
-		 */
-		public double percentageOver60s() {
-			return (this.numWaitsOver60s / (double)this.numExists) * 100;
-		}
-	}
+	public static final double INTERVAL_LENGTH_SEC = 60 * 60;
 	
 	/**
 	 * Holds statistics for the simulator
@@ -193,28 +50,31 @@ public class SimulatorStats {
 	 * @param The passenger
 	 */
 	public void generatedPassenger(Passenger passenger) {
-		this.numGenerated++;
-		this.currentStatsInterval.numGenerated++;
-		
+		this.updateGeneratedPassenger(this.globalInterval, passenger);
+		this.updateGeneratedPassenger(this.currentStatsInterval, passenger);
+		this.updateGeneratedPassenger(this.pollInterval, passenger);
 		this.passengerFloorArrivals[passenger.getArrivalFloor()]++;
 		this.passengerFloorExits[passenger.getDestinationFloor()]++;
+	}
+	
+	/**
+	 * Updates the stats when a passenger is generated
+	 * @param statsInterval The stats interval
+	 * @param passenger The passenger
+	 */
+	private void updateGeneratedPassenger(StatsInterval statsInterval, Passenger passenger) {
+		statsInterval.increaseNumGenerated();
 		
 		if (passenger.getArrivalFloor() != 0 && passenger.getDestinationFloor() != 0) {
-			this.numInterfloors++;
-			this.pollInterval.numInterfloors++;
-			this.currentStatsInterval.numInterfloors++;
+			statsInterval.increaseNumInterfloors();
 		}
 		
 		if (passenger.getArrivalFloor() == 0) {
-			this.numUp++;
-			this.pollInterval.numUp++;
-			this.currentStatsInterval.numUp++;
+			statsInterval.increaseNumUp();
 		}
 		
 		if (passenger.getDestinationFloor() == 0) {
-			this.numDown++;
-			this.pollInterval.numDown++;
-			this.currentStatsInterval.numDown++;
+			statsInterval.increaseNumDown();
 		}
 	}
 	
@@ -222,27 +82,33 @@ public class SimulatorStats {
 	 * Marks that a passenger has exited
 	 */
 	public void passengerExited(Passenger passenger) {
-		this.numExists++;
-		this.pollInterval.numExists++;
-		this.currentStatsInterval.numExists++;
+		this.updatePassengerExited(this.globalInterval, passenger);
+		this.updatePassengerExited(this.currentStatsInterval, passenger);
+		this.updatePassengerExited(this.pollInterval, passenger);
 		
-		long waitTime = passenger.waitTime(this.clock);
-		this.totalWaitTime += waitTime;
-		this.currentStatsInterval.totalWaitTime += waitTime;
+//		double waitTimeSec = this.clock.asSecond(passenger.waitTime(this.clock));
+//		if (waitTimeSec > 1000) {
+//			System.out.println(passenger.getId() + ": " + passenger.getArrivalFloor() + "->" + passenger.getDestinationFloor() + ": " + waitTimeSec + "s");
+//		}
+	}
+	
+	/**
+	 * Updates the stats when a passenger exits
+	 * @param statsInterval The stats interval
+	 * @param passenger The passenger
+	 */
+	private void updatePassengerExited(StatsInterval statsInterval, Passenger passenger) {
+		statsInterval.increaseNumExists();
+
+		double waitTimeSec = this.clock.asSecond(passenger.waitTime(this.clock));
+		statsInterval.increaseTotalWaitTime(waitTimeSec);	
+		statsInterval.increaseTotalSquaredWaitTime(waitTimeSec * waitTimeSec);
 		
-		double waitTimeSec = this.clock.asSecond(waitTime);
-		this.totalSquaredWaitTime += waitTimeSec * waitTimeSec;
-		this.pollInterval.totalSquaredWaitTime += waitTimeSec * waitTimeSec;
-		this.currentStatsInterval.totalSquaredWaitTime += waitTimeSec * waitTimeSec;
+		double rideTimeSec = this.clock.asSecond(passenger.rideTime(this.clock));
+		statsInterval.increaseTotalRideTime(rideTimeSec);
 		
-		long rideTime = passenger.rideTime(this.clock);
-		this.totalRideTime += rideTime;
-		this.currentStatsInterval.totalRideTime += rideTime;
-		
-		if (waitTime > clock.secondsToTime(60)) {
-			this.numWaitsOver60s++;
-			this.currentStatsInterval.numWaitsOver60s++;
-			this.simulator.log(passenger.getArrivalFloor() + "->" + passenger.getDestinationFloor());
+		if (waitTimeSec > 60) {
+			statsInterval.increaseNumWaitsOver60s();
 		}
 	}
 	
@@ -250,28 +116,28 @@ public class SimulatorStats {
 	 * Calculates the average wait time
 	 */
 	public double averageWaitTime() {
-		return this.clock.asSecond(this.totalWaitTime) / (double)this.numExists;
+		return this.globalInterval.averageWaitTime();
 	}
 	
 	/**
 	 * Calculates the average squared wait time
 	 */
 	public double averageSquaredWaitTime() {
-		return this.totalSquaredWaitTime / (double)this.numExists;
+		return this.globalInterval.averageSquaredWaitTime();
 	}
 	
 	/**
 	 * Calculates the average ride time
 	 */
 	public double averageRideTime() {
-		return this.clock.asSecond(this.totalRideTime) / (double)this.numExists;
+		return this.globalInterval.averageRideTime();
 	}
 	
 	/**
 	 * Returns the % of the wait times over 60 s
 	 */
 	public double percentageOver60s() {
-		return (this.numWaitsOver60s / (double)this.numExists) * 100;
+		return this.globalInterval.percentageOver60s();
 	}
 			
 	/**
@@ -280,16 +146,17 @@ public class SimulatorStats {
 	public void printStats() {
 		System.out.println("Simulated time: " + clock.asSecond(clock.simulatedTime()) + " s");
 		System.out.println("Number of residents: " + this.numResidents);
-		System.out.println("Number generated passengers: " + this.numGenerated);
-		System.out.println("Number served passengers: " + this.numExists);
+		System.out.println("Number generated passengers: " + this.globalInterval.getNumGenerated());
+		System.out.println("Number served passengers: " + this.globalInterval.getNumExists());
 		System.out.println("Average wait time: " + this.averageWaitTime() + " s");
 		System.out.println("Average squared wait time: " + this.averageSquaredWaitTime() + " s");
 		System.out.println("Average ride time: " + this.averageRideTime() + " s");
 		System.out.println("Wait times over 60 sec: " + this.percentageOver60s() + "%");
+		System.out.println("Longest wait time: " + this.globalInterval.getLongestWaitTime() + " s");
 		
-		System.out.println("Number of up travels: " + this.numUp);
-		System.out.println("Number of down travels: " + this.numDown);
-		System.out.println("Number of interfloor travels: " + this.numInterfloors);
+		System.out.println("Number of up travels: " + this.globalInterval.getNumUp());
+		System.out.println("Number of down travels: " + this.globalInterval.getNumDown());
+		System.out.println("Number of interfloor travels: " + this.globalInterval.getNumInterfloors());
 		
 		if (this.printFloorsAndElevators) {
 			System.out.println("----Floor arrivals----");
@@ -310,47 +177,25 @@ public class SimulatorStats {
 	}
 	
 	/**
+	 * Returns the global interval
+	 */
+	public StatsInterval getGlobalInterval() {
+		return this.globalInterval;
+	}
+	
+	/**
+	 * Returns the stats intervals
+	 */
+	public List<StatsInterval> getStatsIntervals() {
+		return this.statsIntervals;
+	}
+	
+	/**
 	 * Exports the statistics
 	 * @param fileName The name of the file to export to
 	 */
 	public void exportStats(String fileName) {
-		try {
-			File dataDir = new File("data");
-			if (!dataDir.exists()) {
-				dataDir.mkdir();
-			}
-			
-			BufferedWriter writer = new BufferedWriter(new FileWriter("data/" + fileName + ".csv"));
-			writer.write("Hour;");
-			writer.write("Number generated passengers;");
-			writer.write("Number served passengers;");
-			writer.write("Average wait time;");
-			writer.write("Average squared wait time;");
-			writer.write("Average ride time;");
-			writer.write("Wait times over 60 sec;");
-			writer.write("Number of up travels;");
-			writer.write("Number of down travels;");
-			writer.write("Number of interfloor travels;");
-			writer.write("\n");
-			
-			for (StatsInterval interval : this.statsIntervals) {
-				writer.write((int)(interval.getStartTime() / this.intervalLengthSec) + ";");
-				writer.write(interval.numGenerated + ";");
-				writer.write(interval.numExists + ";");
-				writer.write(interval.averageWaitTime(this.clock) + ";");
-				writer.write(interval.averageSquaredWaitTime() + ";");
-				writer.write(interval.averageRideTime(this.clock) + ";");
-				writer.write(interval.percentageOver60s() + ";");
-				writer.write(interval.numUp + ";");
-				writer.write(interval.numDown + ";");
-				writer.write(interval.numInterfloors + "");
-				writer.write("\n");
-			}
-			
-			writer.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}		
+		StatsInterval.exportStats(fileName, this.statsIntervals, INTERVAL_LENGTH_SEC);	
 	}
 	
 	/**
@@ -359,7 +204,7 @@ public class SimulatorStats {
 	public void update() {
 		double timeNow = this.simulator.getClock().timeNowSec();
 		double duration = timeNow - this.currentStatsInterval.getStartTime();
-		if (duration >= this.intervalLengthSec) {
+		if (duration >= INTERVAL_LENGTH_SEC) {
 			this.statsIntervals.add(this.currentStatsInterval);
 			this.currentStatsInterval = StatsInterval.newTimeInterval(timeNow);
 		}
@@ -391,12 +236,10 @@ public class SimulatorStats {
 	 */
 	public void reset() {
 		this.intervalNum = 0;
+		this.globalInterval = StatsInterval.newTimeInterval(0);
 		this.pollInterval = StatsInterval.newPollInterval(0);
 		this.currentStatsInterval = StatsInterval.newTimeInterval(0);
 		this.statsIntervals.clear();
-		
-		this.numGenerated = 0;
-		this.numExists = 0;
 		
 		for (int i = 0; i < passengerFloorArrivals.length; i++) {
 			passengerFloorArrivals[i] = 0;
@@ -404,15 +247,6 @@ public class SimulatorStats {
 		
 		for (int i = 0; i < passengerFloorExits.length; i++) {
 			passengerFloorExits[i] = 0;
-		}
-				
-		this.numUp = 0;
-		this.numDown = 0;
-		this.numInterfloors = 0;
-		
-		this.totalWaitTime = 0;
-		this.totalSquaredWaitTime = 0;
-		this.totalRideTime = 0;
-		this.numWaitsOver60s = 0;
+		}				
 	}
 }

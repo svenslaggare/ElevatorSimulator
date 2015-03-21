@@ -67,6 +67,15 @@ public class ControlSystem {
 	}
 	
 	/**
+	 * Marks that the given passenger has exited the given elevator car
+	 * @param elevatorCar The elevator car
+	 * @param passenger The passenger
+	 */
+	public void passengerExited(ElevatorCar elevatorCar, Passenger passenger) {
+		this.scheduler.passengerExited(this.simulator, elevatorCar, passenger);
+	}
+	
+	/**
 	 * Marks that the given elevator car is idle
 	 * @param elevator The elevator car
 	 */

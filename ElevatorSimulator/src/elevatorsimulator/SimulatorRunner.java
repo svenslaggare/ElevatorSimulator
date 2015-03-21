@@ -2,6 +2,7 @@ package elevatorsimulator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import elevatorsimulator.schedulers.*;
 
@@ -11,17 +12,20 @@ import elevatorsimulator.schedulers.*;
  *
  */
 public class SimulatorRunner {
+	private final int numRuns;
 	private final SimulatorSettings settings;
 	private final List<Scenario> scenarios;
 	private final List<SchedulerCreator> schedulerCreators;
 	
 	/**
 	 * Creates a new simulator runner
+	 * @param numRuns The number of runs
 	 * @param settings The settings to use
 	 * @param scenarios The scenarios
 	 * @param schedulerCreators The schedulers to use
 	 */
-	public SimulatorRunner(SimulatorSettings settings, List<Scenario> scenarios, List<SchedulerCreator> schedulerCreators) {
+	public SimulatorRunner(int numRuns, SimulatorSettings settings, List<Scenario> scenarios, List<SchedulerCreator> schedulerCreators) {
+		this.numRuns = numRuns;
 		this.settings = settings;
 		this.scenarios = scenarios;
 		this.schedulerCreators = schedulerCreators;
@@ -31,13 +35,56 @@ public class SimulatorRunner {
 	 * Runs the simulator with the specified scenarios, schedulers and traffic profiles
 	 */
 	public void run() {
+		Random seedGenerator = new Random();
+		
 		for (Scenario scenario : this.scenarios) {
 			System.out.println("----------------Running scenario " + scenario.getName() +  "----------------");
-			long randSeed = System.currentTimeMillis();
-			for (SchedulerCreator schedulerCreator : this.schedulerCreators) {
-				Simulator simulator = new Simulator(scenario, this.settings, schedulerCreator, randSeed);
-				simulator.run();
+			
+			long[] randSeeds = new long[this.numRuns];
+			for (int i = 0; i < this.numRuns; i++) {
+				randSeeds[i] = seedGenerator.nextLong();
 			}
+			
+			for (SchedulerCreator schedulerCreator : this.schedulerCreators) {
+				List<StatsInterval> stats = new ArrayList<StatsInterval>();
+				List<List<StatsInterval>> hourStats = new ArrayList<List<StatsInterval>>();
+				String name = "";
+				
+				for (int i = 0; i < this.numRuns; i++) {
+					Simulator simulator = new Simulator(scenario, this.settings, schedulerCreator, randSeeds[i]);
+					simulator.setExportStats(false);
+					simulator.run();
+					stats.add(simulator.getStats().getGlobalInterval());
+					hourStats.add(simulator.getStats().getStatsIntervals());
+					
+					if (name == "") {
+						name = simulator.getSimulationName();
+					}
+				}
+				
+				List<StatsInterval> averageStats = new ArrayList<StatsInterval>();
+				averageStats.add(StatsInterval.average(stats));
+				StatsInterval.exportStats(name, averageStats, SimulatorStats.INTERVAL_LENGTH_SEC);
+				
+				List<StatsInterval> averageHourStats = new ArrayList<StatsInterval>();
+				int minNumIntervals = Integer.MAX_VALUE;
+				for (List<StatsInterval> intervals : hourStats) {
+					minNumIntervals = Math.min(minNumIntervals, intervals.size());
+				}
+				
+				for (int i = 0; i < minNumIntervals; i++) {
+					List<StatsInterval> hourTotal = new ArrayList<StatsInterval>();
+					
+					for (List<StatsInterval> runIntervals : hourStats) {
+						hourTotal.add(runIntervals.get(i));
+					}			
+					
+					averageHourStats.add(StatsInterval.average(hourTotal));
+				}
+				
+				StatsInterval.exportStats(name + "-Hour", averageHourStats, SimulatorStats.INTERVAL_LENGTH_SEC);
+			}
+			
 			System.out.println("----------------End scenario----------------");
 		}
 	}
@@ -80,8 +127,15 @@ public class SimulatorRunner {
 			}
 		});
 		
+		schedulerCreators.add(new SchedulerCreator() {		
+			@Override
+			public SchedulingAlgorithm createScheduler(Building building) {
+				return new ThreePassageGroupElevator(building);
+			}
+		});
+		
 		SimulatorSettings settings = new SimulatorSettings(0.01, 24 * 60 * 60);	
-		SimulatorRunner runner = new SimulatorRunner(settings, scenarios, schedulerCreators);
+		SimulatorRunner runner = new SimulatorRunner(10, settings, scenarios, schedulerCreators);
 		runner.run();
 	}
 }

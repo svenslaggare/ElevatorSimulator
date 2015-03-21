@@ -17,6 +17,7 @@ public class Simulator {
 	private Random random;
 	
 	private final SimulatorStats stats;
+	private boolean exportStats = true;
 	
 	private final Building building;
 	private final ControlSystem controlSystem;
@@ -62,7 +63,7 @@ public class Simulator {
 	/**
 	 * Returns the name of the simulation
 	 */
-	private String getSimulationName() {
+	public String getSimulationName() {
 		return this.scenarioName + "-" + this.controlSystem.getSchedulerName();
 	}
 	
@@ -102,6 +103,21 @@ public class Simulator {
 	}
 	
 	/**
+	 * Indicates if the stats are exported
+	 */
+	public boolean isExportStats() {
+		return exportStats;
+	}
+
+	/**
+	 * Sets if the stats are exported
+	 * @param exportStats The export stats state
+	 */
+	public void setExportStats(boolean exportStats) {
+		this.exportStats = exportStats;
+	}
+
+	/**
 	 * Moves the simulation forward one time step
 	 * @param duration The elapsed time since the last time step
 	 */
@@ -116,10 +132,12 @@ public class Simulator {
 	 * @param line The line
 	 */
 	public void log(String line) {
-		if (enableLog) {
-			double simulatedTime = (double)this.clock.elapsedSinceRealTime(0) / SimulatorClock.NANOSECONDS_PER_SECOND;
-			System.out.println(this.clock.formattedTime(simulatedTime) + ": " + line);
-		}
+//		if (this.clock.timeNow() >= 61645170003571L && this.clock.timeNow() <= 63104000003868L) {	
+			if (enableLog) {
+				double simulatedTime = (double)this.clock.elapsedSinceRealTime(0) / SimulatorClock.NANOSECONDS_PER_SECOND;
+				System.out.println(this.clock.formattedTime(simulatedTime) + ": " + line);
+			}
+//		}
 	}
 	
 	/**
@@ -148,6 +166,16 @@ public class Simulator {
 	 */
 	public void arrivalGenerated(Passenger passenger) {
 		this.stats.generatedPassenger(passenger);
+	}
+	
+	/**
+	 * Marks that the given passenger has exited the given elevator car
+	 * @param elevatorCar The elevator car
+	 * @param passenger The passenger
+	 */
+	public void passengerExited(ElevatorCar elevatorCar, Passenger passenger) {
+		this.stats.passengerExited(passenger);
+		this.controlSystem.passengerExited(elevatorCar, passenger);
 	}
 	
 	/**
@@ -204,8 +232,7 @@ public class Simulator {
 		
 		System.out.println(new Date() + ": Simulation finished.");		
 		System.out.println("--------------------" + this.controlSystem.getSchedulerName() + "--------------------");
-		this.stats.printStats();		
-		this.stats.exportStats(this.getSimulationName());
+		this.printStats();
 	}
 	
 	private boolean run = false;
@@ -257,7 +284,10 @@ public class Simulator {
 	 */
 	public void printStats() {
 		this.stats.printStats();
-		this.stats.exportStats(this.getSimulationName());
+		
+		if (this.isExportStats()) {
+			this.stats.exportStats(this.getSimulationName());
+		}
 	}
 	
 	public static void main(String[] args) {
@@ -270,15 +300,15 @@ public class Simulator {
 		};
 		
 		TrafficProfile.Interval[] arrivalRates = new TrafficProfile.Interval[1];
-		arrivalRates[0] = new TrafficProfile.Interval(0.06, 1, 0);
-//		arrivalRates[0] = new TrafficProfile.Interval(0.06, 0.45, 0.45);
+//		arrivalRates[0] = new TrafficProfile.Interval(0.06, 1, 0);
+		arrivalRates[0] = new TrafficProfile.Interval(0.06, 0.45, 0.45);
 		
 		SchedulerCreator creator = new SchedulerCreator() {		
 			@Override
 			public SchedulingAlgorithm createScheduler(Building building) {
 //				return new LongestQueueFirst();
-				return new Zoning(building.getElevatorCars().length, building);
-//				return new ThreePassageGroupElevator(building);
+//				return new Zoning(building.getElevatorCars().length, building);
+				return new ThreePassageGroupElevator(building);
 //				return new RoundRobin(building, false);
 			}
 		};
@@ -289,11 +319,16 @@ public class Simulator {
 				3,
 				ElevatorCarConfiguration.defaultConfiguration(),
 				floors,
-//				new TrafficProfile(arrivalRates)),
-				TrafficProfiles.WEEK_DAY_PROFILE),
-			new SimulatorSettings(0.01, 24 * 60 * 60),
+				new TrafficProfile(arrivalRates)),
+			new SimulatorSettings(0.01, 1 * 60 * 60),
 			creator,
 			1337);
+		
+//		Simulator simulator = new Simulator(
+//			Scenarios.createMediumBuilding(2),
+//			new SimulatorSettings(0.01, 24 * 60 * 60),
+//			creator,
+//			1312455);
 		
 		simulator.run();
 	}

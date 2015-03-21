@@ -5,14 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import elevatorsimulator.Building;
-import elevatorsimulator.ElevatorCarConfiguration;
-import elevatorsimulator.Scenario;
+import elevatorsimulator.Scenarios;
 import elevatorsimulator.SchedulerCreator;
 import elevatorsimulator.SchedulingAlgorithm;
 import elevatorsimulator.Simulator;
 import elevatorsimulator.SimulatorClock;
 import elevatorsimulator.SimulatorSettings;
-import elevatorsimulator.TrafficProfiles;
 import elevatorsimulator.schedulers.LongestQueueFirst;
 import elevatorsimulator.schedulers.MultiScheduler;
 import elevatorsimulator.schedulers.RoundRobin;
@@ -38,10 +36,6 @@ public class RISimulator {
 		}
 		
 		//Create the simulator
-		int[] floors = new int[] {
-			0, 80, 70, 90, 80, 115, 120, 90, 80, 90, 80, 100, 80, 80, 50
-		};
-
 		SchedulerCreator creator = new SchedulerCreator() {		
 			@Override
 			public SchedulingAlgorithm createScheduler(Building building) {
@@ -55,14 +49,10 @@ public class RISimulator {
 		};
 		
 		Simulator simulator = new Simulator(
-			new Scenario(
-				"Testing",
-				3,
-				ElevatorCarConfiguration.defaultConfiguration(),
-				floors,
-				TrafficProfiles.WEEK_DAY_PROFILE),
+			Scenarios.createLargeBuilding(3),
 			new SimulatorSettings(0.01, 24 * 60 * 60),
-			creator);
+			creator,
+			1337);
 	    
 	    // Obtain from the configuration how to run the experiment
 	    int totalRuns = config.getInt("total_runs");

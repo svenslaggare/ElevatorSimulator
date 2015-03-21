@@ -1,6 +1,6 @@
 package elevatorsimulator.reinforcementlearning;
 
-import elevatorsimulator.SimulatorStats.StatsInterval;
+import elevatorsimulator.StatsInterval;
 import marl.environments.State;
 
 /**

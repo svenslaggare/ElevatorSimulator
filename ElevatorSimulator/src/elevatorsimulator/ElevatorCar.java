@@ -288,7 +288,7 @@ public class ElevatorCar {
 					if (this.floor == passenger.getDestinationFloor()) {
 						simulator.elevatorLog(this.id, "Passenger #" + passenger.getId() + " exited at floor " + this.floor + ".");
 						simulator.log("Passenger #" + passenger.getId() + " stats: " + passenger.getStats(simulator.getClock()) + ".");
-						simulator.getStats().passengerExited(passenger);
+						simulator.passengerExited(this, passenger);
 						this.passengers.remove(passenger);
 						leaved = true;
 					}

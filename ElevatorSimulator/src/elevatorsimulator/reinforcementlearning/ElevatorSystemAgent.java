@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import marl.agents.Agent;
-import marl.agents.learning.qlearning.EGreedyQLearning;
+import marl.agents.learning.qlearning.*;
 import marl.utility.Config;
 
 /**

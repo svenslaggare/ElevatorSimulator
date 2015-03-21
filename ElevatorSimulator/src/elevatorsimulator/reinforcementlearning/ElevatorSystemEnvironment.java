@@ -5,7 +5,7 @@ import java.util.Queue;
 import elevatorsimulator.Passenger;
 import elevatorsimulator.Simulator;
 import elevatorsimulator.SimulatorClock;
-import elevatorsimulator.SimulatorStats.StatsInterval;
+import elevatorsimulator.StatsInterval;
 import elevatorsimulator.schedulers.MultiScheduler;
 import marl.environments.Environment;
 

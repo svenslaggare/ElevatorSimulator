@@ -34,6 +34,11 @@ public class MultiScheduler implements SchedulingAlgorithm {
 	}
 	
 	@Override
+	public String toString() {
+		return "ReinforcementLearning";
+	}
+	
+	@Override
 	public void passengerArrived(Simulator simulator, Passenger passenger) {
 		this.schedulers.get(this.activeScheduler).passengerArrived(simulator, passenger);
 	}
