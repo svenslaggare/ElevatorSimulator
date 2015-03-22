@@ -231,6 +231,11 @@ public class Zoning implements SchedulingAlgorithm {
 	public void onTurned(Simulator simulator, ElevatorCar elevatorCar) {
 
 	}
+	
+	@Override
+	public void changedTo(Simulator simulator) {
+
+	}
 
 	@Override
 	public String toString() {

@@ -126,4 +126,9 @@ public class LongestQueueFirst implements SchedulingAlgorithm {
 	public String toString() {
 		return "LongestQueueFirst";
 	}
+
+	@Override
+	public void changedTo(Simulator simulator) {
+
+	}
 }

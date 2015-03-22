@@ -48,4 +48,10 @@ public interface SchedulingAlgorithm {
 	 * @param elevatorCar The elevator car
 	 */
 	public void onTurned(Simulator simulator, ElevatorCar elevatorCar);
+	
+	/**
+	 * The action to execute when the schedulers has been switch to
+	 * @param simulator The simulator
+	 */
+	public void changedTo(Simulator simulator);
 }

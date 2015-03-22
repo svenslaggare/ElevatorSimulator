@@ -119,39 +119,6 @@ public class Floor {
 	 */
 	public void update(Simulator simulator, long duration) {
 		if (!this.waitingQueue.isEmpty()) {
-//			for (Passenger passenger : new LinkedList<Passenger>(this.waitingQueue)) {
-//				for (ElevatorCar elevator : simulator.getBuilding().getElevatorCars()) {
-//					if (elevator.getState() == State.STOPPED || elevator.getState() == State.IDLE) {			
-//						//Check if the elevator can pickup the passenger
-//						if (!elevator.canPickupPassenger(passenger) || !elevator.canBoard(simulator)) {
-//							continue;
-//						}
-//						
-//						boolean canPickup = false;
-//						
-//						Direction dir = Direction.getDirection(this.floorNumber, passenger.getDestinationFloor());
-//						
-//						if (this.floorNumber == elevator.getFloor()) {
-//							canPickup = 
-//								elevator.getDirection() == Direction.NONE
-//								|| elevator.getDirection() == dir;
-//						}
-//						
-//						
-//						if (canPickup) {
-//							simulator.elevatorLog(elevator.getId(), "Picked up passenger #" + passenger.getId() + " at floor "
-//								+ this.floorNumber + " with the destination of "
-//								+ passenger.getDestinationFloor() + ".");
-//								
-//							elevator.setDirection(dir);
-//							elevator.pickUp(simulator, passenger);
-//							this.hallCallHandled(simulator, passenger);
-//							break;
-//						}
-//					}
-//				}
-//			}
-			
 			Iterator<Passenger> iterator = this.waitingQueue.iterator();
 			while (iterator.hasNext()) {
 				Passenger passenger = iterator.next();

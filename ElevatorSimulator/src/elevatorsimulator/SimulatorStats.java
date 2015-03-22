@@ -86,10 +86,13 @@ public class SimulatorStats {
 		this.updatePassengerExited(this.currentStatsInterval, passenger);
 		this.updatePassengerExited(this.pollInterval, passenger);
 		
-//		double waitTimeSec = this.clock.asSecond(passenger.waitTime(this.clock));
-//		if (waitTimeSec > 1000) {
-//			System.out.println(passenger.getId() + ": " + passenger.getArrivalFloor() + "->" + passenger.getDestinationFloor() + ": " + waitTimeSec + "s");
-//		}
+		double waitTimeSec = this.clock.asSecond(passenger.waitTime(this.clock));
+		if (waitTimeSec > 1000) {
+			System.out.println(
+				passenger.getId() + ": "
+			    + passenger.getArrivalFloor() + "->" + passenger.getDestinationFloor()
+			    + ": " + waitTimeSec + "s");
+		}
 	}
 	
 	/**
@@ -195,7 +198,10 @@ public class SimulatorStats {
 	 * @param fileName The name of the file to export to
 	 */
 	public void exportStats(String fileName) {
-		StatsInterval.exportStats(fileName, this.statsIntervals, INTERVAL_LENGTH_SEC);	
+		List<StatsInterval> globalInterval = new ArrayList<StatsInterval>();
+		globalInterval.add(this.globalInterval);
+		StatsInterval.exportStats(fileName + "", globalInterval, INTERVAL_LENGTH_SEC);	
+		StatsInterval.exportStats(fileName + "-Hour", this.statsIntervals, INTERVAL_LENGTH_SEC);	
 	}
 	
 	/**

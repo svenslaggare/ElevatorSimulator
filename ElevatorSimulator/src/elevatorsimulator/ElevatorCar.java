@@ -344,8 +344,8 @@ public class ElevatorCar {
 				}
 			}
 			break;
-			default:
-				break;
+		default:
+			break;
 		}
 	}
 	

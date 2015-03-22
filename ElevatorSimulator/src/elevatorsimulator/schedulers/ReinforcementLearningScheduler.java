@@ -9,28 +9,44 @@ import elevatorsimulator.SchedulingAlgorithm;
 import elevatorsimulator.Simulator;
 
 /**
- * Represents a scheduler that can switch strategy
+ * Represents a scheduler that uses Reinforcement learning
  * @author Anton Jansson
  *
  */
-public class MultiScheduler implements SchedulingAlgorithm {
+public class ReinforcementLearningScheduler implements SchedulingAlgorithm {
 	private final List<SchedulingAlgorithm> schedulers = new ArrayList<SchedulingAlgorithm>();
 	private int activeScheduler;
 	
 	/**
-	 * Creates a new multi scheduler
+	 * Creates a new Reinforcement learning scheduler
 	 * @param schedulers The schedulers
 	 */
-	public MultiScheduler(List<SchedulingAlgorithm> schedulers) {
+	public ReinforcementLearningScheduler(List<SchedulingAlgorithm> schedulers) {
 		this.schedulers.addAll(schedulers);
+	}
+	
+	private SchedulingAlgorithm activeScheduler() {
+		return this.schedulers.get(this.activeScheduler);
 	}
 	
 	/**
 	 * Switches the active scheduler to the given
+	 * @param simulator The simulator
 	 * @param scheduler The scheduler
 	 */
-	public void switchTo(int scheduler) {
+	public void switchTo(Simulator simulator, int scheduler) {
+		boolean hasSwitched = false;
+		
+		if (this.activeScheduler != scheduler) {
+			//The strategy has switched
+			hasSwitched = true;
+		}
+		
 		this.activeScheduler = scheduler;
+		
+		if (hasSwitched) {
+			this.activeScheduler().changedTo(simulator);
+		}
 	}
 	
 	@Override
@@ -66,5 +82,10 @@ public class MultiScheduler implements SchedulingAlgorithm {
 	@Override
 	public void onTurned(Simulator simulator, ElevatorCar elevatorCar) {
 		this.schedulers.get(this.activeScheduler).onTurned(simulator, elevatorCar);
+	}
+	
+	@Override
+	public void changedTo(Simulator simulator) {
+
 	}
 }

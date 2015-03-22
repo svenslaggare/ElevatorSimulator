@@ -35,16 +35,16 @@ public class SimulatorRunner {
 	 * Runs the simulator with the specified scenarios, schedulers and traffic profiles
 	 */
 	public void run() {
-		Random seedGenerator = new Random();
+		Random seedGenerator = new Random(4711 * 1337);
+		
+		long[] randSeeds = new long[this.numRuns];
+		for (int i = 0; i < this.numRuns; i++) {
+			randSeeds[i] = seedGenerator.nextLong();
+		}
 		
 		for (Scenario scenario : this.scenarios) {
 			System.out.println("----------------Running scenario " + scenario.getName() +  "----------------");
-			
-			long[] randSeeds = new long[this.numRuns];
-			for (int i = 0; i < this.numRuns; i++) {
-				randSeeds[i] = seedGenerator.nextLong();
-			}
-			
+						
 			for (SchedulerCreator schedulerCreator : this.schedulerCreators) {
 				List<StatsInterval> stats = new ArrayList<StatsInterval>();
 				List<List<StatsInterval>> hourStats = new ArrayList<List<StatsInterval>>();
@@ -66,22 +66,7 @@ public class SimulatorRunner {
 				averageStats.add(StatsInterval.average(stats));
 				StatsInterval.exportStats(name, averageStats, SimulatorStats.INTERVAL_LENGTH_SEC);
 				
-				List<StatsInterval> averageHourStats = new ArrayList<StatsInterval>();
-				int minNumIntervals = Integer.MAX_VALUE;
-				for (List<StatsInterval> intervals : hourStats) {
-					minNumIntervals = Math.min(minNumIntervals, intervals.size());
-				}
-				
-				for (int i = 0; i < minNumIntervals; i++) {
-					List<StatsInterval> hourTotal = new ArrayList<StatsInterval>();
-					
-					for (List<StatsInterval> runIntervals : hourStats) {
-						hourTotal.add(runIntervals.get(i));
-					}			
-					
-					averageHourStats.add(StatsInterval.average(hourTotal));
-				}
-				
+				List<StatsInterval> averageHourStats = StatsInterval.averageHours(hourStats);			
 				StatsInterval.exportStats(name + "-Hour", averageHourStats, SimulatorStats.INTERVAL_LENGTH_SEC);
 			}
 			
@@ -135,7 +120,7 @@ public class SimulatorRunner {
 		});
 		
 		SimulatorSettings settings = new SimulatorSettings(0.01, 24 * 60 * 60);	
-		SimulatorRunner runner = new SimulatorRunner(10, settings, scenarios, schedulerCreators);
+		SimulatorRunner runner = new SimulatorRunner(15, settings, scenarios, schedulerCreators);
 		runner.run();
 	}
 }

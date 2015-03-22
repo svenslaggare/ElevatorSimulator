@@ -3,6 +3,7 @@ package elevatorsimulator;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -272,6 +273,30 @@ public class StatsInterval {
 		averageInterval.numWaitsOver60s = averageInterval.numWaitsOver60s / intervals.size();
 			
 		return averageInterval;
+	}
+	
+	/**
+	 * Averages the given hour intervals
+	 * @param hourIntervals The hour intervals
+	 */
+	public static List<StatsInterval> averageHours(List<List<StatsInterval>> hourIntervals) {
+		List<StatsInterval> averageHourStats = new ArrayList<StatsInterval>();
+		int minNumIntervals = Integer.MAX_VALUE;
+		for (List<StatsInterval> intervals : hourIntervals) {
+			minNumIntervals = Math.min(minNumIntervals, intervals.size());
+		}
+		
+		for (int i = 0; i < minNumIntervals; i++) {
+			List<StatsInterval> hourTotal = new ArrayList<StatsInterval>();
+			
+			for (List<StatsInterval> runIntervals : hourIntervals) {
+				hourTotal.add(runIntervals.get(i));
+			}			
+			
+			averageHourStats.add(StatsInterval.average(hourTotal));
+		}
+		
+		return averageHourStats;
 	}
 	
 	/**

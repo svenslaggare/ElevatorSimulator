@@ -107,6 +107,19 @@ public class RoundRobin implements SchedulingAlgorithm {
 	}
 	
 	@Override
+	public void changedTo(Simulator simulator) {
+		//Clear queues
+		for (ElevatorData elevatorData : this.elevators) {
+			elevatorData.queue.clear();
+		}
+		
+		//Add to queues
+		for (Passenger passenger : simulator.getControlSystem().getHallQueue()) {
+			this.passengerArrived(simulator, passenger);
+		}
+	}
+	
+	@Override
 	public String toString() {
 		if (!this.isUpPeak) {
 			return "RoundRobin";

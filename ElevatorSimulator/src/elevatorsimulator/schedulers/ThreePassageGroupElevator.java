@@ -90,6 +90,11 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 			}
 			return true;
 		}	
+		
+		@Override
+		public String toString() {
+			return "{ type: " + this.type + ", travel: " + this.passenger.getArrivalFloor() + "->" + this.passenger.getDestinationFloor() + " }";
+		}
 	}
 	
 	/**
@@ -118,11 +123,45 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 	}
 	
 	/**
+	 * Represents a call tuple
+	 * @author Anton Jansson
+	 *
+	 */
+	private static class CallTuple {
+		public final ElevatorData elevatorData;
+		public final PassengerCall call;
+		
+		public CallTuple(ElevatorData elevatorData, PassengerCall call) {
+			this.elevatorData = elevatorData;
+			this.call = call;
+		}
+	}
+
+	/**
+	 * Finds the call for the given passenger
+	 * @param passenger The passenger
+	 * @return The call or null
+	 */
+	private CallTuple findCall(Passenger passenger) {
+		for (ElevatorData elevatorData : this.elevators) {
+			for (PassengerCall hallCall : elevatorData.hallCalls) {
+				if (hallCall.passenger == passenger) {
+					return new CallTuple(elevatorData, hallCall);
+				}
+			}
+		}
+		
+		System.out.println(passenger);
+		return null;
+	}
+	
+	/**
 	 * Finds the hall call for the given passenger
 	 * @param elevatorData The elevator data
 	 * @param passenger The passenger
 	 * @return The hall call or null
 	 */
+	@SuppressWarnings("unused")
 	private PassengerCall findHallCall(ElevatorData elevatorData, Passenger passenger) {
 		for (PassengerCall hallCall : elevatorData.hallCalls) {
 			if (hallCall.passenger == passenger) {
@@ -182,9 +221,11 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 			} else {
 				return PassageType.P2;
 			}
-		} else {
+		} else {			
 			//Same floor
-			if (elevatorCar.getState() == State.IDLE || elevatorCar.getState() == State.STOPPED) {
+			if (elevatorCar.getState() == State.IDLE
+				|| elevatorCar.getState() == State.STOPPED
+				|| elevatorCar.getState() == State.DECELERATING) {
 				return PassageType.P1;
 			}
 			
@@ -365,16 +406,16 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 		
 		double tiAttending = tikNonstop + (CiBefore.size() + HiBefore.size() - CHiBefore.size() + sikExtraSum) * ts;
 		
-//		if (tiAttending < 0) {
-//			System.out.println(
-//				"Negative tiAttending: (" + tiAttending + "): "
-//				+ passengerToHandle.getArrivalFloor() + "->" + passengerToHandle.getDestinationFloor()
-//				+ " (Elevator floor: " + elevatorFloor + ")"
-//				+ " Elevator dir: " + elevatorDir
-//				+ " Passenger dir: " + passengerToHandle.getDirection()
-//				+ " Call type: " + callType
-//				+ " HiBefore: " + HiBefore);
-//		}
+		if (tiAttending < 0) {
+			System.out.println(
+				"Negative tiAttending: (" + tiAttending + "): "
+				+ passengerToHandle.getArrivalFloor() + "->" + passengerToHandle.getDestinationFloor()
+				+ " (Elevator floor: " + elevatorFloor + ")"
+				+ " Elevator dir: " + elevatorDir
+				+ " Passenger dir: " + passengerToHandle.getDirection()
+				+ " Call type: " + callType
+				+ " HiBefore: " + HiBefore);
+		}
 		
 		return tiAttending;		
 	}
@@ -971,12 +1012,12 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 			}
 		}
 		
-//		if (passenger.getId() == 1259) {
+//		if (passenger.getId() == 1075) {
 //			System.out.println(
-//				"elevator: " + bestElevatorData.elevatorCar.getId()
+//				"elevator #" + bestElevatorData.elevatorCar.getId()
 //				+ " floor: " + bestElevatorData.elevatorCar.getFloor()
 //				+ " hall: " + bestElevatorData.hallCalls.size()
-//				+ " car: " + bestElevatorData.carCalls.size()
+//				+ " car: " + bestElevatorData.carCalls
 //				+ " time: " + passenger.getTimeOfArrival());
 //		}
 		
@@ -984,20 +1025,26 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 	}
 	
 	@Override
-	public void passengerBoarded(Simulator simulator, ElevatorCar elevatorCar, Passenger passenger) {
-		ElevatorData elevatorData = this.elevatorToData.get(elevatorCar);
-		PassengerCall hallCall = this.findHallCall(elevatorData, passenger);
-		
-//		if (passenger.getId() == 1259) {
+	public void passengerBoarded(Simulator simulator, ElevatorCar elevatorCar, Passenger passenger) {		
+//		if (passenger.getId() == 1075) {
 //			System.out.println("boarded at " + passenger.getTimeOfRideStarted() + " elevator: " +  elevatorCar.getId());
 //		}
-				
-		if (hallCall != null) {
-			elevatorData.hallCalls.remove(hallCall);
-			elevatorData.carCalls.add(hallCall);
-		} else {
-			elevatorData.carCalls.add(new PassengerCall(PassageType.P1, passenger));
+		
+		CallTuple callData = this.findCall(passenger);
+		ElevatorData elevatorData = null;
+		
+		if (callData == null) {
+			System.out.println("wololo");
 		}
+		
+		if (callData.elevatorData.elevatorCar == elevatorCar) {
+			elevatorData = callData.elevatorData;
+		} else {
+			elevatorData = this.elevatorToData.get(elevatorCar);
+		}
+		
+		callData.elevatorData.hallCalls.remove(callData.call);
+		elevatorData.carCalls.add(callData.call);
 	}
 	
 	@Override
@@ -1036,7 +1083,7 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 			} else if (elevatorCar.getState() == State.IDLE) {						
 				Passenger toHandle = null;
 				if (!elevatorData.hallCalls.isEmpty()) {
-					toHandle = elevatorData.hallCalls.remove().passenger;
+					toHandle = elevatorData.hallCalls.peek().passenger;
 				}
 				
 				if (toHandle != null) {
@@ -1060,6 +1107,31 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 		}
 	}
 	
+	/**
+	 * Indicates that the simulator switched to the current scheduler
+	 * @param simulator The simulator
+	 */
+	@Override
+	public void changedTo(Simulator simulator) {
+		//Clear all queues
+		for (ElevatorData elevatorData : this.elevators) {
+			elevatorData.carCalls.clear();
+			elevatorData.hallCalls.clear();
+		}
+		
+		//Add for passenger insides elevators
+		for (ElevatorData elevatorData : this.elevators) {
+			for (Passenger passenger : elevatorData.elevatorCar.getPassengers()) {
+				elevatorData.carCalls.add(new PassengerCall(PassageType.P1, passenger));
+			}
+		}
+		
+		//Add for passengers waiting
+		for (Passenger passenger : simulator.getControlSystem().getHallQueue()) {
+			this.passengerArrived(simulator, passenger);
+		}
+	}
+		
 	@Override
 	public String toString() {
 		return "ThreePassageGroupElevator";

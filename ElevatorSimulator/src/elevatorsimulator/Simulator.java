@@ -132,7 +132,7 @@ public class Simulator {
 	 * @param line The line
 	 */
 	public void log(String line) {
-//		if (this.clock.timeNow() >= 61645170003571L && this.clock.timeNow() <= 63104000003868L) {	
+//		if (this.clock.timeNow() >= 57613720002750L - SimulatorClock.NANOSECONDS_PER_SECOND * 60 && this.clock.timeNow() <= 58961030003024L) {	
 			if (enableLog) {
 				double simulatedTime = (double)this.clock.elapsedSinceRealTime(0) / SimulatorClock.NANOSECONDS_PER_SECOND;
 				System.out.println(this.clock.formattedTime(simulatedTime) + ": " + line);
@@ -248,12 +248,24 @@ public class Simulator {
 	 * Resets the simulator
 	 */
 	public void reset() {
+		this.reset(-1);
+	}
+	
+	/**
+	 * Resets the simulator using the given seed
+	 * @param seed The seed
+	 */
+	public void reset(long seed) {
+		if (seed == -1) {
+			this.random = new Random();
+		} else {
+			this.random = new Random(seed);
+		}
+		
 		this.controlSystem.reset();
 		this.building.reset();
 		this.clock.reset();
 		this.stats.reset();
-//		this.random = new Random(this.randSeed);
-		this.random = new Random();
 	}
 	
 	/**
@@ -295,9 +307,9 @@ public class Simulator {
 //			0, 80, 70, 90, 80, 115, 120, 90, 80, 90, 80, 100, 80, 80, 50
 //		};
 		
-		int[] floors = new int[] {
-			0, 70, 70, 75, 85, 75, 80, 90, 90, 85, 75, 80, 75, 90, 70, 70
-		};
+//		int[] floors = new int[] {
+//			0, 70, 70, 75, 85, 75, 80, 90, 90, 85, 75, 80, 75, 90, 70, 70
+//		};
 		
 		TrafficProfile.Interval[] arrivalRates = new TrafficProfile.Interval[1];
 //		arrivalRates[0] = new TrafficProfile.Interval(0.06, 1, 0);
@@ -313,22 +325,22 @@ public class Simulator {
 			}
 		};
 		
+//		Simulator simulator = new Simulator(
+//			new Scenario(
+//				"Testing",
+//				3,
+//				ElevatorCarConfiguration.defaultConfiguration(),
+//				floors,
+//				new TrafficProfile(arrivalRates)),
+//			new SimulatorSettings(0.01, 1 * 60 * 60),
+//			creator,
+//			1337);
+		
 		Simulator simulator = new Simulator(
-			new Scenario(
-				"Testing",
-				3,
-				ElevatorCarConfiguration.defaultConfiguration(),
-				floors,
-				new TrafficProfile(arrivalRates)),
-			new SimulatorSettings(0.01, 1 * 60 * 60),
+			Scenarios.createLargeBuilding(4),
+			new SimulatorSettings(0.01, 24 * 60 * 60),
 			creator,
 			1337);
-		
-//		Simulator simulator = new Simulator(
-//			Scenarios.createMediumBuilding(2),
-//			new SimulatorSettings(0.01, 24 * 60 * 60),
-//			creator,
-//			1312455);
 		
 		simulator.run();
 	}

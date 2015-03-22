@@ -134,4 +134,9 @@ public class Passenger {
 			"Wait time: " + statsFormat.format(clock.asSecond(this.waitTime(clock))) + " s"
 			+ " Ride time: " + statsFormat.format(clock.asSecond(this.rideTime(clock))) + " s";
 	}
+	
+	@Override
+	public String toString() {
+		return "{ id: " + this.id + ", travel: " + this.arrivalFloor + "->" + this.destinationFloor + " }";
+	}
 }
