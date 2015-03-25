@@ -13,7 +13,7 @@ import elevatorsimulator.Simulator;
  * @author Anton Jansson
  *
  */
-public class ReinforcementLearningScheduler implements SchedulingAlgorithm {
+public class ReinforcementLearning implements SchedulingAlgorithm {
 	private final List<SchedulingAlgorithm> schedulers = new ArrayList<SchedulingAlgorithm>();
 	private int activeScheduler;
 	
@@ -21,7 +21,7 @@ public class ReinforcementLearningScheduler implements SchedulingAlgorithm {
 	 * Creates a new Reinforcement learning scheduler
 	 * @param schedulers The schedulers
 	 */
-	public ReinforcementLearningScheduler(List<SchedulingAlgorithm> schedulers) {
+	public ReinforcementLearning(List<SchedulingAlgorithm> schedulers) {
 		this.schedulers.addAll(schedulers);
 	}
 	

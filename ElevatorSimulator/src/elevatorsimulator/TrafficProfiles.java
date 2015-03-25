@@ -45,25 +45,25 @@ public class TrafficProfiles {
 		}
 				
 		//05 to 06
-		arrivalRates[5 * 6] = new Interval(0.0025, 0.05, 0.9);
-		arrivalRates[5 * 6 + 1] = new Interval(0.0035, 0.05, 0.9);
-		arrivalRates[5 * 6 + 2] = new Interval(0.0045, 0.05, 0.9);
-		arrivalRates[5 * 6 + 3] = new Interval(0.0055, 0.05, 0.9);
-		arrivalRates[5 * 6 + 4] = new Interval(0.0065, 0.05, 0.9);
-		arrivalRates[5 * 6 + 5] = new Interval(0.0075, 0.05, 0.9);
+		arrivalRates[5 * 6] = new Interval(0.0025, 0.10, 0.85);
+		arrivalRates[5 * 6 + 1] = new Interval(0.0035, 0.09, 0.86);
+		arrivalRates[5 * 6 + 2] = new Interval(0.0045, 0.08, 0.87);
+		arrivalRates[5 * 6 + 3] = new Interval(0.0055, 0.08, 0.87);
+		arrivalRates[5 * 6 + 4] = new Interval(0.0065, 0.07, 0.88);
+		arrivalRates[5 * 6 + 5] = new Interval(0.0075, 0.06, 0.89);
 		
 		//06 to 07
-		arrivalRates[6 * 6] = new Interval(0.0090, 0.03, 0.92);
-		arrivalRates[6 * 6 + 1] = new Interval(0.0105, 0.03, 0.92);
-		arrivalRates[6 * 6 + 2] = new Interval(0.0120, 0.03, 0.92);
+		arrivalRates[6 * 6] = new Interval(0.0090, 0.05, 0.90);
+		arrivalRates[6 * 6 + 1] = new Interval(0.0105, 0.04, 0.91);
+		arrivalRates[6 * 6 + 2] = new Interval(0.0120, 0.04, 0.91);
 		arrivalRates[6 * 6 + 3] = new Interval(0.0135, 0.03, 0.92);
 		arrivalRates[6 * 6 + 4] = new Interval(0.0150, 0.03, 0.92);
 		arrivalRates[6 * 6 + 5] = new Interval(0.0165, 0.03, 0.92);
 		
 		//07 to 08
-		arrivalRates[7 * 6] = new Interval(0.0180, 0.05, 0.90);
-		arrivalRates[7 * 6 + 1] = new Interval(0.0195, 0.05, 0.90);
-		arrivalRates[7 * 6 + 2] = new Interval(0.0210, 0.05, 0.90);
+		arrivalRates[7 * 6] = new Interval(0.0180, 0.04, 0.91);
+		arrivalRates[7 * 6 + 1] = new Interval(0.0195, 0.04, 0.91);
+		arrivalRates[7 * 6 + 2] = new Interval(0.0210, 0.04, 0.91);
 		arrivalRates[7 * 6 + 3] = new Interval(0.0225, 0.05, 0.90);
 		arrivalRates[7 * 6 + 4] = new Interval(0.0240, 0.05, 0.90);
 		arrivalRates[7 * 6 + 5] = new Interval(0.0255, 0.05, 0.90);
@@ -89,7 +89,13 @@ public class TrafficProfiles {
 		downRate = 0.65;
 		for (int i = 10 * 6; i < 15 * 6; i++) {
 			downRate -= 0.010;
-			arrival -= 1 / 5000.0;
+			
+			if (i < 13 * 6) {
+				arrival -= 1 / 12000.0;
+			} else {
+				arrival += 1 / 12000.0;
+			}
+			
 			arrivalRates[i] = new Interval(arrival, 1.0 - downRate - 0.05, downRate);
 		}
 				
@@ -113,7 +119,7 @@ public class TrafficProfiles {
 		arrivalRates[17 * 6] = new Interval(0.020, 0.72, 0.23);
 		arrivalRates[17 * 6 + 1] = new Interval(0.021, 0.73, 0.22);
 		arrivalRates[17 * 6 + 2] = new Interval(0.022, 0.74, 0.21);
-		arrivalRates[17 * 6 + 3] = new Interval(0.023, 0.75, 0.20);
+		arrivalRates[17 * 6 + 3] = new Interval(0.022, 0.75, 0.20);
 		arrivalRates[17 * 6 + 4] = new Interval(0.022, 0.74, 0.21);
 		arrivalRates[17 * 6 + 5] = new Interval(0.021, 0.73, 0.22);
 		

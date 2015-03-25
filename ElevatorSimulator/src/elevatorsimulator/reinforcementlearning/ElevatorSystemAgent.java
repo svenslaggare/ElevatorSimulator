@@ -39,6 +39,14 @@ public class ElevatorSystemAgent extends Agent<ElevatorSystemEnvironment> {
 	}
 	
 	/**
+	 * Sets if the agent is in evaluation mode or learning mode
+	 * @param active True if evaluation mode
+	 */
+	public void evaluationMode(boolean active) {
+		this.learning.evaluationMode(active);
+	}
+	
+	/**
 	 * Returns the action distribution
 	 */
 	public int[] getActionDistribution() {

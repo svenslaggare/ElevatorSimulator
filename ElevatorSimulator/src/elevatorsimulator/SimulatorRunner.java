@@ -85,6 +85,7 @@ public class SimulatorRunner {
 		List<SchedulerCreator> schedulerCreators = new ArrayList<SchedulerCreator>();
 		schedulerCreators.add(new SchedulerCreator() {		
 			@Override
+			
 			public SchedulingAlgorithm createScheduler(Building building) {
 				return new LongestQueueFirst(); 
 			}

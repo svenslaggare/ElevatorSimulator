@@ -14,13 +14,13 @@ import java.io.IOException;
  *
  */
 public class StatisticTools {
-	public static void combineGlobal(String scenarioName) {
+	public static void combineGlobal(final String scenarioName) {
 		String dataDir = "data";
 		
 		String[] files = new File(dataDir).list(new FilenameFilter() {		
 			@Override
 			public boolean accept(File dir, String name) {
-				return name.startsWith(scenarioName) && !name.endsWith("-Hour.csv");
+				return name.startsWith(scenarioName) && !name.endsWith("-Hour.csv") && !name.endsWith("-SchedulerUsage.csv");
 			}
 		});
 		

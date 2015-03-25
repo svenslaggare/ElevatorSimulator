@@ -1,5 +1,7 @@
 package elevatorsimulator.reinforcementlearning;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,8 +16,9 @@ import elevatorsimulator.SimulatorClock;
 import elevatorsimulator.SimulatorSettings;
 import elevatorsimulator.SimulatorStats;
 import elevatorsimulator.StatsInterval;
+import elevatorsimulator.reinforcementlearning.ElevatorSystemAgent.Action;
 import elevatorsimulator.schedulers.LongestQueueFirst;
-import elevatorsimulator.schedulers.ReinforcementLearningScheduler;
+import elevatorsimulator.schedulers.ReinforcementLearning;
 import elevatorsimulator.schedulers.RoundRobin;
 import elevatorsimulator.schedulers.ThreePassageGroupElevator;
 import elevatorsimulator.schedulers.Zoning;
@@ -23,11 +26,60 @@ import marl.utility.Config;
 import marl.utility.Rand;
 
 /**
- * Represents a simulator using reinforcement learning
+ * Represents a simulator that uses reinforcement learning
  * @author Anton Jansson
  *
  */
 public class RLSimulator {	
+	private static class HourUsage {
+		public final double[] usage = new double[ElevatorSystemAgent.Action.values().length];
+	}
+	
+	/**
+	 * Exports the scheduler usage
+	 * @param simulationName The name of the simulation
+	 * @param schedulerUsage The scheduler usage
+	 */
+	private static void exportSchedulerUsage(String simulationName, List<List<HourUsage>> schedulerUsage) {
+		int minUsageHours = Integer.MAX_VALUE;
+		for (List<HourUsage> dataHourUsage : schedulerUsage) {
+			minUsageHours = Math.min(minUsageHours, dataHourUsage.size());
+		}	
+		
+		try {
+			BufferedWriter writer = new BufferedWriter(new FileWriter("data/" + simulationName + "-SchedulerUsage.csv"));
+			writer.write("Hour");
+			for (Action action : ElevatorSystemAgent.Action.values()) {
+				writer.write(";" + action);
+			}
+			writer.write("\n");
+			
+			for (int i = 0; i < minUsageHours; i++) {
+				HourUsage averageHourUsage = new HourUsage();
+				for (List<HourUsage> runUsage : schedulerUsage) {
+					HourUsage currentHour = runUsage.get(i);
+					
+					for (int action = 0; action < currentHour.usage.length; action++) {
+						averageHourUsage.usage[action] += currentHour.usage[action] / schedulerUsage.size();
+					}
+				}		
+				
+				writer.write(i + ";");
+				
+				for (double actionUsage : averageHourUsage.usage) {
+					writer.write(actionUsage + ";");
+				}
+				
+				writer.write("\n");
+			}
+						
+			writer.flush();
+			writer.close();
+		} catch (IOException e) {
+		
+		}
+	}
+	
 	public static void main(String[] args) throws IOException {
 		Config config = new Config();
 		config.readFile("src/elevatorsimulator/reinforcementlearning/config.ini");
@@ -47,7 +99,7 @@ public class RLSimulator {
 				schedulers.add(new Zoning(building.getElevatorCars().length, building));
 				schedulers.add(new RoundRobin(building, false));
 				schedulers.add(new ThreePassageGroupElevator(building));
-				return new ReinforcementLearningScheduler(schedulers);
+				return new ReinforcementLearning(schedulers);
 			}
 		};
 		
@@ -83,9 +135,11 @@ public class RLSimulator {
         // Add the agent into the environment
         env.add(agent);
         
+        //Statistics
         List<StatsInterval> globalStats = new ArrayList<StatsInterval>();
         List<List<StatsInterval>> hourStats = new ArrayList<List<StatsInterval>>();
-        	
+        List<List<HourUsage>> schedulerUsage = new ArrayList<List<HourUsage>>();	
+        
         for (int episodeNo = 0; episodeNo < maxEpisodes; episodeNo++) {
             // Reset the environment
             env.reset(episodeNo);
@@ -95,6 +149,7 @@ public class RLSimulator {
             //Check if data run
             if (isDataRun) {
             	simulator.reset(randSeeds[dataRuns - (maxEpisodes - episodeNo)]);
+            	agent.evaluationMode(true);
             } else {            
             	simulator.reset();
             }
@@ -105,6 +160,9 @@ public class RLSimulator {
             SimulatorClock clock = simulator.getClock();
             List<Long> exited = new ArrayList<Long>();
             
+            //For the first interval
+            env.incrementTime();
+            
             while (simulator.advance()) {
             	if (clock.elapsedSinceRealTime(lastInterval) >= clock.secondsToTime(intervalLearningLength)) {
 	            	env.incrementTime();
@@ -114,7 +172,9 @@ public class RLSimulator {
             	}
             }          
             
+            //For the last interval
             env.rewardLastState();
+            exited.add(simulator.getStats().getPollInterval().getNumExists());
             
             globalStats.add(simulator.getStats().getGlobalInterval());
             hourStats.add(simulator.getStats().getStatsIntervals());
@@ -127,8 +187,8 @@ public class RLSimulator {
             for (int i = 0; i < agent.getActionDistribution().length; i++) {
         		System.out.println("\t" + ElevatorSystemAgent.Action.values()[i] + ": " + agent.getActionDistribution()[i]);
         	}
-            	                      
-            if (isDataRun) {
+            
+            if (episodeNo == maxEpisodes - 1) {
 	            System.out.print("\t0: ");
 	            int i = 0;
 	            int count = 0;
@@ -146,6 +206,26 @@ public class RLSimulator {
 	            	}
 	            }
             }
+            	                      
+            if (isDataRun) {
+	            int count = 0;
+	            HourUsage hourUsage = new HourUsage();
+	            List<HourUsage> dataRunUsage = new ArrayList<RLSimulator.HourUsage>();
+	            
+	            for (ElevatorSystemAgent.Action action : agent.getActionUsage()) {
+	            	hourUsage.usage[action.ordinal()] += 1;
+	            	count++;
+	            	
+	            	if (count == 6) {
+	            		dataRunUsage.add(hourUsage);
+	            		hourUsage = new HourUsage();
+	            		count = 0;
+	            	}
+	            }
+	            
+	            dataRunUsage.add(hourUsage);         
+	            schedulerUsage.add(dataRunUsage);
+            }
             
             System.out.println();
         }
@@ -162,5 +242,7 @@ public class RLSimulator {
 		
 		List<StatsInterval> averageHourStats = StatsInterval.averageHours(hourStats);			
 		StatsInterval.exportStats(simulator.getSimulationName() + "-Hour", averageHourStats, SimulatorStats.INTERVAL_LENGTH_SEC);
+		
+		exportSchedulerUsage(simulator.getSimulationName(), schedulerUsage);
 	}
 }

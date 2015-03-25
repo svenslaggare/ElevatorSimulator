@@ -6,7 +6,7 @@ import elevatorsimulator.Passenger;
 import elevatorsimulator.Simulator;
 import elevatorsimulator.SimulatorClock;
 import elevatorsimulator.StatsInterval;
-import elevatorsimulator.schedulers.ReinforcementLearningScheduler;
+import elevatorsimulator.schedulers.ReinforcementLearning;
 import marl.environments.Environment;
 
 public class ElevatorSystemEnvironment implements Environment<ElevatorSystemState, ElevatorSystemAgent> {
@@ -62,7 +62,7 @@ public class ElevatorSystemEnvironment implements Environment<ElevatorSystemStat
 
 	@Override
 	public void performAction(ElevatorSystemAgent agent, int action) {
-		ReinforcementLearningScheduler multiScheduler = (ReinforcementLearningScheduler)this.simulator.getControlSystem().getScheduler();
+		ReinforcementLearning multiScheduler = (ReinforcementLearning)this.simulator.getControlSystem().getScheduler();
 		multiScheduler.switchTo(this.simulator, action);		
 	}
 	

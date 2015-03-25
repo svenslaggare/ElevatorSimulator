@@ -302,45 +302,21 @@ public class Simulator {
 		}
 	}
 	
-	public static void main(String[] args) {
-//		int[] floors = new int[] {
-//			0, 80, 70, 90, 80, 115, 120, 90, 80, 90, 80, 100, 80, 80, 50
-//		};
-		
-//		int[] floors = new int[] {
-//			0, 70, 70, 75, 85, 75, 80, 90, 90, 85, 75, 80, 75, 90, 70, 70
-//		};
-		
-		TrafficProfile.Interval[] arrivalRates = new TrafficProfile.Interval[1];
-//		arrivalRates[0] = new TrafficProfile.Interval(0.06, 1, 0);
-		arrivalRates[0] = new TrafficProfile.Interval(0.06, 0.45, 0.45);
-		
+	public static void main(String[] args) {		
 		SchedulerCreator creator = new SchedulerCreator() {		
 			@Override
 			public SchedulingAlgorithm createScheduler(Building building) {
-//				return new LongestQueueFirst();
+				return new LongestQueueFirst();
 //				return new Zoning(building.getElevatorCars().length, building);
-				return new ThreePassageGroupElevator(building);
+//				return new ThreePassageGroupElevator(building);
 //				return new RoundRobin(building, false);
 			}
 		};
-		
-//		Simulator simulator = new Simulator(
-//			new Scenario(
-//				"Testing",
-//				3,
-//				ElevatorCarConfiguration.defaultConfiguration(),
-//				floors,
-//				new TrafficProfile(arrivalRates)),
-//			new SimulatorSettings(0.01, 1 * 60 * 60),
-//			creator,
-//			1337);
-		
+				
 		Simulator simulator = new Simulator(
-			Scenarios.createLargeBuilding(4),
+			Scenarios.createLargeBuilding(3),
 			new SimulatorSettings(0.01, 24 * 60 * 60),
-			creator,
-			1337);
+			creator);
 		
 		simulator.run();
 	}
