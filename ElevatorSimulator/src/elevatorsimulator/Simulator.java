@@ -174,7 +174,7 @@ public class Simulator {
 	 * @param passenger The passenger
 	 */
 	public void passengerExited(ElevatorCar elevatorCar, Passenger passenger) {
-		this.stats.passengerExited(passenger);
+		this.stats.passengerExited(elevatorCar, passenger);
 		this.controlSystem.passengerExited(elevatorCar, passenger);
 	}
 	
@@ -306,8 +306,8 @@ public class Simulator {
 		SchedulerCreator creator = new SchedulerCreator() {		
 			@Override
 			public SchedulingAlgorithm createScheduler(Building building) {
-				return new LongestQueueFirst();
-//				return new Zoning(building.getElevatorCars().length, building);
+//				return new LongestQueueFirst();
+				return new Zoning(building.getElevatorCars().length, building);
 //				return new ThreePassageGroupElevator(building);
 //				return new RoundRobin(building, false);
 			}

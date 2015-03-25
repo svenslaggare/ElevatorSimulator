@@ -80,6 +80,31 @@ public class RLSimulator {
 		}
 	}
 	
+	/**
+	 * Exports the average squared wait time
+	 * @param simulationName The simulation name
+	 * @param aswt The average squared wait time
+	 */
+	private static void exportAverageSquaredWaitTime(String simulationName, List<Double> aswt) {
+		try {
+			BufferedWriter writer = new BufferedWriter(new FileWriter("data/" + simulationName + "-LearningASWT.csv"));
+			writer.write("Episode;");
+			writer.write("Average squared wait time");
+			writer.write("\n");
+			
+			for (int i = 0; i < aswt.size(); i++) {
+				writer.write(i + ";");
+				writer.write(aswt.get(i) + "");
+				writer.write("\n");
+			}
+						
+			writer.flush();
+			writer.close();
+		} catch (IOException e) {
+		
+		}
+	}
+	
 	public static void main(String[] args) throws IOException {
 		Config config = new Config();
 		config.readFile("src/elevatorsimulator/reinforcementlearning/config.ini");
@@ -124,6 +149,9 @@ public class RLSimulator {
 		for (int i = 0; i < dataRuns; i++) {
 			randSeeds[i] = seedGenerator.nextLong();
 		}	
+		
+		//Increase the number of episodes so we get #trained episodes=maxEpisodes
+		maxEpisodes += dataRuns;
 	    
 	    System.out.println("Starting Experiment");
 	    long start = System.currentTimeMillis();
@@ -139,6 +167,7 @@ public class RLSimulator {
         List<StatsInterval> globalStats = new ArrayList<StatsInterval>();
         List<List<StatsInterval>> hourStats = new ArrayList<List<StatsInterval>>();
         List<List<HourUsage>> schedulerUsage = new ArrayList<List<HourUsage>>();	
+        List<Double> aswtStats = new ArrayList<Double>();
         
         for (int episodeNo = 0; episodeNo < maxEpisodes; episodeNo++) {
             // Reset the environment
@@ -149,7 +178,7 @@ public class RLSimulator {
             //Check if data run
             if (isDataRun) {
             	simulator.reset(randSeeds[dataRuns - (maxEpisodes - episodeNo)]);
-            	agent.evaluationMode(true);
+            	agent.evaluationMode(true); //This will make the agent follow the policy.
             } else {            
             	simulator.reset();
             }
@@ -183,6 +212,8 @@ public class RLSimulator {
             	"\tEpisode #" + (episodeNo + 1)
             	+ " Reward: " + env.totalReward() + " Average SWT: " + simulator.getStats().averageSquaredWaitTime() + "s"
             	+ " State space: " + agent.getStateSpace());
+            
+            aswtStats.add(simulator.getStats().averageSquaredWaitTime());
             
             for (int i = 0; i < agent.getActionDistribution().length; i++) {
         		System.out.println("\t" + ElevatorSystemAgent.Action.values()[i] + ": " + agent.getActionDistribution()[i]);
@@ -244,5 +275,6 @@ public class RLSimulator {
 		StatsInterval.exportStats(simulator.getSimulationName() + "-Hour", averageHourStats, SimulatorStats.INTERVAL_LENGTH_SEC);
 		
 		exportSchedulerUsage(simulator.getSimulationName(), schedulerUsage);
+		exportAverageSquaredWaitTime(simulator.getSimulationName(), aswtStats);
 	}
 }

@@ -69,18 +69,6 @@ public class RoundRobin implements SchedulingAlgorithm {
 			ElevatorCar elevatorCar = elevator.elevator;	
 			
 			if (elevatorCar.getState() == State.IDLE) {
-//				Passenger toHandle = null;
-//				
-//				while (!elevator.queue.isEmpty()) {
-//					toHandle = elevator.queue.remove();
-//					
-//					if (!toHandle.hasBoarded()) {
-//						break;
-//					} else {
-//						toHandle = null;
-//					}
-//				}
-				
 				Passenger toHandle = null;
 				if (!elevator.queue.isEmpty()) {
 					toHandle = elevator.queue.remove();

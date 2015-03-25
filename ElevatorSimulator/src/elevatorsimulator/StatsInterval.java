@@ -29,38 +29,46 @@ public class StatsInterval {
 	private long numWaitsOver60s;
 	private double longestWaitTime = 0;
 	
+	private final int[] elevatorCarDistribution;
+	
 	/**
 	 * Creates a new interval
 	 * @param startTime The start time of the interval
+	 * @param numElevators The number of elevator cars
 	 */
-	private StatsInterval(double startTime) {
+	private StatsInterval(double startTime, int numElevators) {
 		this.startTime = startTime;
 		this.num = -1;
+		this.elevatorCarDistribution = new int[numElevators];
 	}
 	
 	/**
 	 * Creates a new interval
 	 * @param num The number of the interval
+	 * @param numElevators The number of elevator cars
 	 */
-	private StatsInterval(int num) {
+	private StatsInterval(int num, int numElevators) {
 		this.num = num;
 		this.startTime = -1;
+		this.elevatorCarDistribution = new int[numElevators];
 	}
 	
 	/**
 	 * Creates a new time-based interval
 	 * @param startTime The start time
+	 * @param numElevators The number of elevator cars
 	 */
-	public static StatsInterval newTimeInterval(double startTime) {
-		return new StatsInterval(startTime);
+	public static StatsInterval newTimeInterval(double startTime, int numElevators) {
+		return new StatsInterval(startTime, numElevators);
 	}
 	
 	/**
 	 * Creates a new poll-based interval
 	 * @param num The number of the interval
+	 * @param numElevators The number of elevator cars
 	 */
-	public static StatsInterval newPollInterval(int num) {
-		return new StatsInterval(num);
+	public static StatsInterval newPollInterval(int num, int numElevators) {
+		return new StatsInterval(num, numElevators);
 	}
 	
 	/**
@@ -244,11 +252,28 @@ public class StatsInterval {
 	}
 	
 	/**
+	 * Returns the elevator car distribution
+	 */
+	public int[] getElevatorCarDistribution() {
+		return this.elevatorCarDistribution;
+	}
+	
+	/**
+	 * Increases the number of served passenger for the given elevator car
+	 * @param elevatorCarId The elevator car id
+	 */
+	public void increaseElevatorCarServed(int elevatorCarId) {
+		this.elevatorCarDistribution[elevatorCarId]++;
+	}
+	
+	/**
 	 * Averages the given intervals and returns a new interval
 	 * @param intervals The intervals
 	 */
 	public static StatsInterval average(List<StatsInterval> intervals) {
-		StatsInterval averageInterval = StatsInterval.newTimeInterval(intervals.get(0).startTime);
+		StatsInterval averageInterval = StatsInterval.newTimeInterval(
+			intervals.get(0).startTime,
+			intervals.get(0).elevatorCarDistribution.length);
 		
 		for (StatsInterval interval : intervals) {
 			averageInterval.numGenerated += interval.numGenerated;
@@ -260,6 +285,10 @@ public class StatsInterval {
 			averageInterval.totalSquaredWaitTime += interval.totalSquaredWaitTime;
 			averageInterval.totalRideTime += interval.totalRideTime;
 			averageInterval.numWaitsOver60s += interval.numWaitsOver60s;
+			
+			for (int i = 0; i < interval.elevatorCarDistribution.length; i++) {
+				averageInterval.elevatorCarDistribution[i] += interval.elevatorCarDistribution[i];
+			}
 		}
 		
 		averageInterval.numGenerated = averageInterval.numGenerated / intervals.size();
@@ -272,6 +301,10 @@ public class StatsInterval {
 		averageInterval.totalRideTime = averageInterval.totalRideTime / intervals.size();
 		averageInterval.numWaitsOver60s = averageInterval.numWaitsOver60s / intervals.size();
 			
+		for (int i = 0; i < averageInterval.elevatorCarDistribution.length; i++) {
+			averageInterval.elevatorCarDistribution[i] = averageInterval.elevatorCarDistribution[i] / intervals.size();
+		}
+		
 		return averageInterval;
 	}
 	
@@ -323,6 +356,11 @@ public class StatsInterval {
 			writer.write("Number of up travels;");
 			writer.write("Number of down travels;");
 			writer.write("Number of interfloor travels;");
+			
+			for (int i = 0; i < intervals.get(0).elevatorCarDistribution.length; i++) {
+				writer.write("Served passangers elevator " + i + ";");
+			}
+			
 			writer.write("\n");
 			
 			for (StatsInterval interval : intervals) {
@@ -335,7 +373,12 @@ public class StatsInterval {
 				writer.write(interval.percentageOver60s() + ";");
 				writer.write(interval.getNumUp() + ";");
 				writer.write(interval.getNumDown() + ";");
-				writer.write(interval.getNumInterfloors() + "");
+				writer.write(interval.getNumInterfloors() + ";");
+				
+				for (int served : interval.elevatorCarDistribution) {
+					writer.write(served + ";");
+				}
+				
 				writer.write("\n");
 			}
 			

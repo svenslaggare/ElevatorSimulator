@@ -2,6 +2,7 @@ package elevatorsimulator.reinforcementlearning;
 
 import java.util.Queue;
 
+import elevatorsimulator.ElevatorCar;
 import elevatorsimulator.Passenger;
 import elevatorsimulator.Simulator;
 import elevatorsimulator.SimulatorClock;
@@ -71,32 +72,42 @@ public class ElevatorSystemEnvironment implements Environment<ElevatorSystemStat
 	 */
 	private double calculateReward() {
 		StatsInterval interval = this.simulator.getStats().getPollInterval();
-//		if (interval.getNumExists() == 0) {
-//			return Double.MIN_VALUE;
-//		}
-//		
-//		return -interval.getTotalSquaredWaitTime() / interval.getNumExists();
 		
-		double totalSquaredWaitTime = 0;
+		double waitingASWT = 0;
 		SimulatorClock clock = this.simulator.getClock();
 		
 		Queue<Passenger> waitQueue = this.simulator.getControlSystem().getHallQueue();
 		for (Passenger passenger : waitQueue) {
 			double waitTimeSec = clock.asSecond(passenger.waitTime(this.simulator.getClock()));
-			totalSquaredWaitTime += waitTimeSec * waitTimeSec;
+			waitingASWT += waitTimeSec * waitTimeSec;
 		}
 		
-		if (totalSquaredWaitTime > 0) {
-			totalSquaredWaitTime /= waitQueue.size();
+		if (waitingASWT > 0) {
+			waitingASWT /= waitQueue.size();
 		}
 				
-		double travelReward = interval.getTotalSquaredWaitTime();
+		double servedASWT = interval.getTotalSquaredWaitTime();
 		
-		if (interval.getNumExists() != 0) {
-			travelReward /= interval.getNumExists();
+		if (interval.getNumExists() > 0) {
+			servedASWT /= interval.getNumExists();
+		}
+			
+		double elevatorASWT = 0.0;
+		int numInElevator = 0;
+		
+		for (ElevatorCar elevator : this.simulator.getBuilding().getElevatorCars()) {
+			for (Passenger passenger : elevator.getPassengers()) {
+				double waitTimeSec = clock.asSecond(passenger.waitTime(this.simulator.getClock()));
+				elevatorASWT += waitTimeSec * waitTimeSec;
+				numInElevator++;
+			}
 		}
 		
-		return -(totalSquaredWaitTime + travelReward);
+		if (numInElevator > 0) {
+			elevatorASWT /= numInElevator;
+		}
+		
+		return -(waitingASWT + servedASWT + elevatorASWT);
 	}
 	
 	/**

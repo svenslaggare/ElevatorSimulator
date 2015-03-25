@@ -13,17 +13,17 @@ public class SimulatorStats {
 	private final Simulator simulator;
 	private final long numResidents;
 	
-	private StatsInterval globalInterval = StatsInterval.newTimeInterval(0);
+	private StatsInterval globalInterval;
 	private final int[] passengerFloorArrivals;
 	private final int[] passengerFloorExits;
 	
 	private final ElevatorCar[] elevatorCars;
 	private boolean printFloorsAndElevators = false;
 		
-	private StatsInterval pollInterval = StatsInterval.newPollInterval(0);
+	private StatsInterval pollInterval;
 	private int intervalNum = 0;
 	
-	private StatsInterval currentStatsInterval = StatsInterval.newTimeInterval(0);
+	private StatsInterval currentStatsInterval;
 	private final List<StatsInterval> statsIntervals = new ArrayList<StatsInterval>();
 	
 	/**
@@ -43,6 +43,10 @@ public class SimulatorStats {
 		this.passengerFloorArrivals = new int[numFloors];
 		this.passengerFloorExits = new int[numFloors];
 		this.elevatorCars = simulator.getBuilding().getElevatorCars();
+		
+		this.globalInterval = StatsInterval.newTimeInterval(0, this.elevatorCars.length);
+		this.pollInterval = StatsInterval.newPollInterval(0, this.elevatorCars.length);
+		this.currentStatsInterval = StatsInterval.newTimeInterval(0, this.elevatorCars.length);
 	}
 	
 	/**
@@ -79,12 +83,14 @@ public class SimulatorStats {
 	}
 	
 	/**
-	 * Marks that a passenger has exited
+	 * Marks that the given pasenger has exited the given elevator car
+	 * @param elevatorCar The elevator car
+	 * @param passenger The passenger
 	 */
-	public void passengerExited(Passenger passenger) {
-		this.updatePassengerExited(this.globalInterval, passenger);
-		this.updatePassengerExited(this.currentStatsInterval, passenger);
-		this.updatePassengerExited(this.pollInterval, passenger);
+	public void passengerExited(ElevatorCar elevatorCar, Passenger passenger) {
+		this.updatePassengerExited(this.globalInterval, elevatorCar, passenger);
+		this.updatePassengerExited(this.currentStatsInterval, elevatorCar, passenger);
+		this.updatePassengerExited(this.pollInterval, elevatorCar, passenger);
 		
 		double waitTimeSec = this.clock.asSecond(passenger.waitTime(this.clock));
 		if (waitTimeSec > 1000) {
@@ -98,9 +104,10 @@ public class SimulatorStats {
 	/**
 	 * Updates the stats when a passenger exits
 	 * @param statsInterval The stats interval
+	 * @param elevatorCar The elevator car
 	 * @param passenger The passenger
 	 */
-	private void updatePassengerExited(StatsInterval statsInterval, Passenger passenger) {
+	private void updatePassengerExited(StatsInterval statsInterval, ElevatorCar elevatorCar, Passenger passenger) {
 		statsInterval.increaseNumExists();
 
 		double waitTimeSec = this.clock.asSecond(passenger.waitTime(this.clock));
@@ -113,6 +120,8 @@ public class SimulatorStats {
 		if (waitTimeSec > 60) {
 			statsInterval.increaseNumWaitsOver60s();
 		}
+		
+		statsInterval.increaseElevatorCarServed(elevatorCar.getId());
 	}
 	
 	/**
@@ -212,7 +221,7 @@ public class SimulatorStats {
 		double duration = timeNow - this.currentStatsInterval.getStartTime();
 		if (duration >= INTERVAL_LENGTH_SEC) {
 			this.statsIntervals.add(this.currentStatsInterval);
-			this.currentStatsInterval = StatsInterval.newTimeInterval(timeNow);
+			this.currentStatsInterval = StatsInterval.newTimeInterval(timeNow, this.elevatorCars.length);
 		}
 	}
 	
@@ -234,7 +243,7 @@ public class SimulatorStats {
 	 * Resets the poll interval
 	 */
 	public void resetPollInterval() {
-		this.pollInterval = StatsInterval.newPollInterval(this.intervalNum++);
+		this.pollInterval = StatsInterval.newPollInterval(this.intervalNum++, this.elevatorCars.length);
 	}
 	
 	/**
@@ -242,9 +251,9 @@ public class SimulatorStats {
 	 */
 	public void reset() {
 		this.intervalNum = 0;
-		this.globalInterval = StatsInterval.newTimeInterval(0);
-		this.pollInterval = StatsInterval.newPollInterval(0);
-		this.currentStatsInterval = StatsInterval.newTimeInterval(0);
+		this.globalInterval = StatsInterval.newTimeInterval(0, this.elevatorCars.length);
+		this.pollInterval = StatsInterval.newPollInterval(0, this.elevatorCars.length);
+		this.currentStatsInterval = StatsInterval.newTimeInterval(0, this.elevatorCars.length);
 		this.statsIntervals.clear();
 		
 		for (int i = 0; i < passengerFloorArrivals.length; i++) {
