@@ -2,11 +2,7 @@ package elevatorsimulator.reinforcementlearning;
 
 import java.util.Queue;
 
-import elevatorsimulator.ElevatorCar;
-import elevatorsimulator.Passenger;
-import elevatorsimulator.Simulator;
-import elevatorsimulator.SimulatorClock;
-import elevatorsimulator.StatsInterval;
+import elevatorsimulator.*;
 import elevatorsimulator.schedulers.ReinforcementLearning;
 import marl.environments.Environment;
 
@@ -92,22 +88,23 @@ public class ElevatorSystemEnvironment implements Environment<ElevatorSystemStat
 			servedASWT /= interval.getNumExists();
 		}
 			
-		double elevatorASWT = 0.0;
-		int numInElevator = 0;
+//		double elevatorASWT = 0.0;
+//		int numInElevator = 0;
+//		
+//		for (ElevatorCar elevator : this.simulator.getBuilding().getElevatorCars()) {
+//			for (Passenger passenger : elevator.getPassengers()) {
+//				double waitTimeSec = clock.asSecond(passenger.waitTime(this.simulator.getClock()));
+//				elevatorASWT += waitTimeSec * waitTimeSec;
+//				numInElevator++;
+//			}
+//		}
 		
-		for (ElevatorCar elevator : this.simulator.getBuilding().getElevatorCars()) {
-			for (Passenger passenger : elevator.getPassengers()) {
-				double waitTimeSec = clock.asSecond(passenger.waitTime(this.simulator.getClock()));
-				elevatorASWT += waitTimeSec * waitTimeSec;
-				numInElevator++;
-			}
-		}
+//		if (numInElevator > 0) {
+//			elevatorASWT /= numInElevator;
+//		}
 		
-		if (numInElevator > 0) {
-			elevatorASWT /= numInElevator;
-		}
-		
-		return -(waitingASWT + servedASWT + elevatorASWT);
+//		return -(waitingASWT + servedASWT + elevatorASWT);
+		return -servedASWT;
 	}
 	
 	/**

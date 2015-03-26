@@ -20,7 +20,11 @@ public class StatisticTools {
 		String[] files = new File(dataDir).list(new FilenameFilter() {		
 			@Override
 			public boolean accept(File dir, String name) {
-				return name.startsWith(scenarioName) && !name.endsWith("-Hour.csv") && !name.endsWith("-SchedulerUsage.csv");
+				return 
+					name.startsWith(scenarioName)
+					&& !name.endsWith("-Hour.csv")
+					&& !name.endsWith("-SchedulerUsage.csv")
+					&& !name.endsWith("-LearningASWT.csv");
 			}
 		});
 		

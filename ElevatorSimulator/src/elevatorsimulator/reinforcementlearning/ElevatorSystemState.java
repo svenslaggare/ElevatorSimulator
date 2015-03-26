@@ -15,7 +15,7 @@ public class ElevatorSystemState implements State<ElevatorSystemState> {
 	private double down;
 	private double interfloor;
 	
-	private static final double RATE_EPSILON = 0.05;
+	private static final double RATE_EPSILON = 0.1;
 	private static final int TOTAL_EPSILON = 100;
 	
 	private final static Type STATE_TYPE = Type.TRAFFIC;

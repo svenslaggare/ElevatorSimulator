@@ -73,8 +73,6 @@ public class Floor {
 					this,
 					floor);
 				
-				//System.out.println(this.floorNumber + " -> " + floor.floorNumber + ": " + probability);
-					
 				this.destinationFloorGenerator.addValue(probability, floor);
 			}
 		}

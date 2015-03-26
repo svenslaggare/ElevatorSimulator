@@ -13,6 +13,7 @@ import elevatorsimulator.SchedulerCreator;
 import elevatorsimulator.SchedulingAlgorithm;
 import elevatorsimulator.Simulator;
 import elevatorsimulator.SimulatorClock;
+import elevatorsimulator.SimulatorRunner;
 import elevatorsimulator.SimulatorSettings;
 import elevatorsimulator.SimulatorStats;
 import elevatorsimulator.StatsInterval;
@@ -124,15 +125,15 @@ public class RLSimulator {
 				schedulers.add(new Zoning(building.getElevatorCars().length, building));
 				schedulers.add(new RoundRobin(building, false));
 				schedulers.add(new ThreePassageGroupElevator(building));
+				schedulers.add(new RoundRobin(building, true));
 				return new ReinforcementLearning(schedulers);
 			}
 		};
 		
 		Simulator simulator = new Simulator(
-			Scenarios.createLargeBuilding(3),
+			Scenarios.createMediumBuilding(2),
 			new SimulatorSettings(0.01, 24 * 60 * 60),
-			creator,
-			1337);
+			creator);
 	    
 	    // Obtain from the configuration how to run the experiment
 	    int maxEpisodes = config.getInt("max_episodes");
@@ -142,8 +143,8 @@ public class RLSimulator {
 	    ElevatorSystemEnvironment env = new ElevatorSystemEnvironment(simulator);    
 	    ElevatorSystemAgent agent = new ElevatorSystemAgent(config);
 
-	    Random seedGenerator = new Random(4711 * 1337);
-		int dataRuns = 15;
+	    Random seedGenerator = new Random(SimulatorRunner.DATA_RUN_SEED);
+		int dataRuns = SimulatorRunner.NUM_DATA_RUNS;
 		
 		long[] randSeeds = new long[dataRuns];
 		for (int i = 0; i < dataRuns; i++) {
@@ -188,9 +189,9 @@ public class RLSimulator {
             long lastInterval = 0;
             SimulatorClock clock = simulator.getClock();
             List<Long> exited = new ArrayList<Long>();
-            
+                      
             //For the first interval
-            env.incrementTime();
+            agent.getActionUsage().add(ElevatorSystemAgent.Action.THREE_PASSAGE_GROUP_ELEVATOR);
             
             while (simulator.advance()) {
             	if (clock.elapsedSinceRealTime(lastInterval) >= clock.secondsToTime(intervalLearningLength)) {
@@ -205,8 +206,10 @@ public class RLSimulator {
             env.rewardLastState();
             exited.add(simulator.getStats().getPollInterval().getNumExists());
             
-            globalStats.add(simulator.getStats().getGlobalInterval());
-            hourStats.add(simulator.getStats().getStatsIntervals());
+            if (isDataRun) {
+            	globalStats.add(simulator.getStats().getGlobalInterval());
+            	hourStats.add(simulator.getStats().getStatsIntervals());
+            }
             
             System.out.println(
             	"\tEpisode #" + (episodeNo + 1)

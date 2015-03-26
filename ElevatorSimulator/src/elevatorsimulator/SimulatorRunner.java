@@ -17,6 +17,9 @@ public class SimulatorRunner {
 	private final List<Scenario> scenarios;
 	private final List<SchedulerCreator> schedulerCreators;
 	
+	public final static int NUM_DATA_RUNS = 50;
+	public final static long DATA_RUN_SEED = 1337 * 4711;
+	
 	/**
 	 * Creates a new simulator runner
 	 * @param numRuns The number of runs
@@ -35,7 +38,7 @@ public class SimulatorRunner {
 	 * Runs the simulator with the specified scenarios, schedulers and traffic profiles
 	 */
 	public void run() {
-		Random seedGenerator = new Random(4711 * 1337);
+		Random seedGenerator = new Random(DATA_RUN_SEED);
 		
 		long[] randSeeds = new long[this.numRuns];
 		for (int i = 0; i < this.numRuns; i++) {
@@ -121,7 +124,7 @@ public class SimulatorRunner {
 		});
 		
 		SimulatorSettings settings = new SimulatorSettings(0.01, 24 * 60 * 60);	
-		SimulatorRunner runner = new SimulatorRunner(15, settings, scenarios, schedulerCreators);
+		SimulatorRunner runner = new SimulatorRunner(NUM_DATA_RUNS, settings, scenarios, schedulerCreators);
 		runner.run();
 	}
 }
