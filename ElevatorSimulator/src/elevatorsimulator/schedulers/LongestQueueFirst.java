@@ -124,7 +124,7 @@ public class LongestQueueFirst implements SchedulingAlgorithm {
 	
 	@Override
 	public String toString() {
-		return "LongestQueueFirst";
+		return "Longest Queue First";
 	}
 
 	@Override

@@ -22,6 +22,7 @@ public class StatisticTools {
 			public boolean accept(File dir, String name) {
 				return 
 					name.startsWith(scenarioName)
+					&& !name.equals(scenarioName + ".csv")
 					&& !name.endsWith("-Hour.csv")
 					&& !name.endsWith("-SchedulerUsage.csv")
 					&& !name.endsWith("-LearningASWT.csv");

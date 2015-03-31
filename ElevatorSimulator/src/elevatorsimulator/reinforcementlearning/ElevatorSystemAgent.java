@@ -131,12 +131,6 @@ public class ElevatorSystemAgent extends Agent<ElevatorSystemEnvironment> {
 	protected void reason(int time) {
 	    // use E-greedy to select the next action
 	    this.action = this.learning.select(this.currentState);
-	    
-	    if (this.action == 1) {
-	    	this.action = 1;
-	    } else {
-	    	this.action = this.action * 1;
-	    }
 	}
 
 	@Override

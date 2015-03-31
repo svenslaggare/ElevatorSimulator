@@ -131,7 +131,7 @@ public class RLSimulator {
 		};
 		
 		Simulator simulator = new Simulator(
-			Scenarios.createMediumBuilding(2),
+			Scenarios.createMediumBuilding(3),
 			new SimulatorSettings(0.01, 24 * 60 * 60),
 			creator);
 	    

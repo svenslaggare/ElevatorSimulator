@@ -110,9 +110,9 @@ public class RoundRobin implements SchedulingAlgorithm {
 	@Override
 	public String toString() {
 		if (!this.isUpPeak) {
-			return "RoundRobin";
+			return "Round Robin";
 		} else {
-			return "UpPeakGroupElevator";
+			return "Up-Peak Group Elevator";
 		}
 	}
 }

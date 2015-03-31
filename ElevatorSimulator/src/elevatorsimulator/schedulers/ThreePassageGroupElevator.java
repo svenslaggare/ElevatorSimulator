@@ -1134,6 +1134,6 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 		
 	@Override
 	public String toString() {
-		return "ThreePassageGroupElevator";
+		return "Three Passage Group Elevator";
 	}
 }

@@ -88,23 +88,22 @@ public class ElevatorSystemEnvironment implements Environment<ElevatorSystemStat
 			servedASWT /= interval.getNumExists();
 		}
 			
-//		double elevatorASWT = 0.0;
-//		int numInElevator = 0;
-//		
-//		for (ElevatorCar elevator : this.simulator.getBuilding().getElevatorCars()) {
-//			for (Passenger passenger : elevator.getPassengers()) {
-//				double waitTimeSec = clock.asSecond(passenger.waitTime(this.simulator.getClock()));
-//				elevatorASWT += waitTimeSec * waitTimeSec;
-//				numInElevator++;
-//			}
-//		}
+		double elevatorASWT = 0.0;
+		int numInElevator = 0;
 		
-//		if (numInElevator > 0) {
-//			elevatorASWT /= numInElevator;
-//		}
+		for (ElevatorCar elevator : this.simulator.getBuilding().getElevatorCars()) {
+			for (Passenger passenger : elevator.getPassengers()) {
+				double waitTimeSec = clock.asSecond(passenger.waitTime(this.simulator.getClock()));
+				elevatorASWT += waitTimeSec * waitTimeSec;
+				numInElevator++;
+			}
+		}
 		
-//		return -(waitingASWT + servedASWT + elevatorASWT);
-		return -servedASWT;
+		if (numInElevator > 0) {
+			elevatorASWT /= numInElevator;
+		}
+		
+		return -(waitingASWT + servedASWT + elevatorASWT);
 	}
 	
 	/**

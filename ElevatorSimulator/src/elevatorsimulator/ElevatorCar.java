@@ -156,7 +156,9 @@ public class ElevatorCar {
 	 * Stops the elevator at the next floor
 	 */
 	public void stopElevatorAtNextFloor() {
-		this.stopAtNext = true;
+		if (this.passengers.size() < this.configuration.getCapacity()) {
+			this.stopAtNext = true;
+		}
 	}
 	
 	/**

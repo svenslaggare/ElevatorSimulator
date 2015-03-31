@@ -51,7 +51,7 @@ public class ReinforcementLearning implements SchedulingAlgorithm {
 	
 	@Override
 	public String toString() {
-		return "ReinforcementLearning";
+		return "Reinforcement Learning";
 	}
 	
 	@Override

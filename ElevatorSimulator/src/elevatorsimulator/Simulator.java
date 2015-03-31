@@ -314,7 +314,7 @@ public class Simulator {
 		};
 				
 		Simulator simulator = new Simulator(
-			Scenarios.createLargeBuilding(3),
+			Scenarios.createLargeBuilding2(3),
 			new SimulatorSettings(0.01, 24 * 60 * 60),
 			creator);
 		
