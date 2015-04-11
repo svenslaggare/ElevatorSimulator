@@ -32,7 +32,7 @@ import marl.utility.Rand;
  * @author Anton Jansson
  *
  */
-public class RLSimulator {	
+public class RLSimulatorOld {	
 	private static class HourUsage {
 		public final double[] usage = new double[ElevatorSystemAgent.Action.values().length];
 	}
@@ -132,12 +132,18 @@ public class RLSimulator {
 				return new ReinforcementLearning(schedulers);
 			}
 		};
-			    
+		
+		Simulator simulator = new Simulator(
+			Scenarios.createLargeBuilding(3),
+			new SimulatorSettings(0.01, 24 * 60 * 60),
+			creator);
+	    
 	    // Obtain from the configuration how to run the experiment
 	    int maxEpisodes = config.getInt("max_episodes");
 	    double intervalLearningLength = 10 * 60;
 	    		
-	    // Create the agent 
+	    // Create the environment and agent
+	    ElevatorSystemEnvironment env = new ElevatorSystemEnvironment(simulator);    
 	    ElevatorSystemAgent agent = new ElevatorSystemAgent(config);
 
 	    Random seedGenerator = new Random(SimulatorRunner.DATA_RUN_SEED);
@@ -154,8 +160,13 @@ public class RLSimulator {
 	    System.out.println("Starting Experiment");
 	    long start = System.currentTimeMillis();
 	    
+        // Initialize the environment and agent
+        env.initialise();
         agent.initialise();
-        	     
+        	
+        // Add the agent into the environment
+        env.add(agent);
+        
         //Statistics
         List<StatsInterval> globalStats = new ArrayList<StatsInterval>();
         List<List<StatsInterval>> hourStats = new ArrayList<List<StatsInterval>>();
@@ -165,33 +176,19 @@ public class RLSimulator {
         String simulationName = "";
         
         for (int episodeNo = 0; episodeNo < maxEpisodes; episodeNo++) {
-            boolean isDataRun = episodeNo >= maxEpisodes - dataRuns;
+            // Reset the environment
+            env.reset(episodeNo);
             
-            long seed = -1;
+            boolean isDataRun = episodeNo >= maxEpisodes - dataRuns;
             
             //Check if data run
             if (isDataRun) {
-            	seed = randSeeds[dataRuns - (maxEpisodes - episodeNo)];
+            	simulator.reset(randSeeds[dataRuns - (maxEpisodes - episodeNo)]);
             	agent.evaluationMode(true); //This will make the agent follow the policy.
+            } else {            
+            	simulator.reset();
             }
-            
-    		Simulator simulator = new Simulator(
-				Scenarios.createLargeBuilding(3),
-				new SimulatorSettings(0.01, 24 * 60 * 60),
-				creator,
-				seed);
-    		
-    	    ElevatorSystemEnvironment env = new ElevatorSystemEnvironment(simulator);   
-    	    
-            // Initialize the environment and agent
-            env.initialise();
-            
-            // Add the agent into the environment
-            env.add(agent);
-            
-            // Reset the environment
-            env.reset(episodeNo);
-                             		
+                        
             simulator.start();
             
             if (simulationName == "") {
@@ -256,7 +253,7 @@ public class RLSimulator {
             if (isDataRun) {
 	            int count = 0;
 	            HourUsage hourUsage = new HourUsage();
-	            List<HourUsage> dataRunUsage = new ArrayList<RLSimulator.HourUsage>();
+	            List<HourUsage> dataRunUsage = new ArrayList<RLSimulatorOld.HourUsage>();
 	            
 	            for (ElevatorSystemAgent.Action action : agent.getActionUsage()) {
 	            	hourUsage.usage[action.ordinal()] += 1;

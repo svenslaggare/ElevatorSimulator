@@ -220,5 +220,6 @@ public class Floor {
 		this.interval = null;
 		this.isFirst = true;
 		this.timeLeft = 0;
+		this.lastIntervalStart = 0;
 	}
 }

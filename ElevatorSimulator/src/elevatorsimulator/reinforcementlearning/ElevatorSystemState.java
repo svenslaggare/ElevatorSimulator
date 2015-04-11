@@ -1,5 +1,8 @@
 package elevatorsimulator.reinforcementlearning;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 import elevatorsimulator.StatsInterval;
 import marl.environments.State;
 
@@ -84,9 +87,16 @@ public class ElevatorSystemState implements State<ElevatorSystemState> {
 			this.intervalNum = interval.getNum();
 		} else if (STATE_TYPE == Type.TRAFFIC) {
 			this.totalPassengers = (int)(interval.getNumUp() + interval.getNumDown() + interval.getNumInterfloors());
-			this.up = interval.getNumUp() / (double)this.totalPassengers;
-			this.down = interval.getNumDown() / (double)this.totalPassengers;
-			this.interfloor = interval.getNumInterfloors() / (double)this.totalPassengers;
+			
+			if (this.totalPassengers > 0) {
+				this.up = interval.getNumUp() / (double)this.totalPassengers;
+				this.down = interval.getNumDown() / (double)this.totalPassengers;
+				this.interfloor = interval.getNumInterfloors() / (double)this.totalPassengers;
+			} else {
+				this.up = 0;
+				this.down = 0;
+				this.interfloor = 0;
+			}
 		}
 	}
 
@@ -102,10 +112,22 @@ public class ElevatorSystemState implements State<ElevatorSystemState> {
 		}
 	}
 	
-	private static int hashCode(double x) {
-		return (int)(x / RATE_EPSILON);
+	private static double round(double value, int places) {
+	    BigDecimal bd = BigDecimal.valueOf(value);
+	    bd = bd.setScale(places, RoundingMode.HALF_UP);
+	    return bd.doubleValue();
+	}
+	
+	public static int hashCode(double x) {
+//		System.out.println(x + " - " + round(x, (int)-Math.log10(RATE_EPSILON)));
+		return (int)Math.round((round(x, (int)-Math.log10(RATE_EPSILON)) / RATE_EPSILON));
 	}
 		
+	public static int hashCode(int x) {
+		return (int)Math.round(x / (double)TOTAL_EPSILON);
+//		return x / TOTAL_EPSILON;
+	}
+	
 	@Override
 	public int hashCode() {
 		if (STATE_TYPE == Type.TIME) {
@@ -118,7 +140,7 @@ public class ElevatorSystemState implements State<ElevatorSystemState> {
 			result = prime * result + (int) (temp ^ (temp >>> 32));
 			temp = hashCode(interfloor);
 			result = prime * result + (int) (temp ^ (temp >>> 32));
-			result = prime * result + (totalPassengers / TOTAL_EPSILON);
+			result = prime * result + hashCode(totalPassengers);
 			temp = hashCode(up);
 			result = prime * result + (int) (temp ^ (temp >>> 32));
 			return result;
@@ -159,7 +181,7 @@ public class ElevatorSystemState implements State<ElevatorSystemState> {
 			
 			ElevatorSystemState other = (ElevatorSystemState) obj;
 			
-			if (this.totalPassengers / TOTAL_EPSILON != other.totalPassengers / TOTAL_EPSILON) {
+			if (hashCode(this.totalPassengers) != hashCode(other.totalPassengers)) {
 				return false;
 			}
 			

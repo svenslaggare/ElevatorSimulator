@@ -249,7 +249,7 @@ public class SimulatorStats {
 	/**
 	 * Resets the stats
 	 */
-	public void reset() {
+	public void reset() {				
 		this.intervalNum = 0;
 		this.globalInterval = StatsInterval.newTimeInterval(0, this.elevatorCars.length);
 		this.pollInterval = StatsInterval.newPollInterval(0, this.elevatorCars.length);

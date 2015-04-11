@@ -18,7 +18,7 @@ public class ElevatorSystemAgent extends Agent<ElevatorSystemEnvironment> {
 	private int action;
 	private ElevatorSystemState currentState;
 	private ElevatorSystemState prevState;
-	private EGreedyQLearning<ElevatorSystemState> learning;
+	private BoltzmannQLearning<ElevatorSystemState> learning;
 	
 	private int[] actionDistribution = new int[Action.values().length];
 	private final List<Action> actions = new ArrayList<Action>();
@@ -77,7 +77,7 @@ public class ElevatorSystemAgent extends Agent<ElevatorSystemEnvironment> {
 	
 	@Override
 	public void initialise() {
-		this.learning = new EGreedyQLearning<>(this.config);
+		this.learning = new BoltzmannQLearning<>(this.config);
 	}
 	
 	@Override
@@ -88,7 +88,7 @@ public class ElevatorSystemAgent extends Agent<ElevatorSystemEnvironment> {
 
 	@Override
 	public void reset(int episodeNo) {
-		this.learning.decreaseEpsilon(episodeNo);
+//		this.learning.decreaseEpsilon(episodeNo);
 		
 		this.currentState = new ElevatorSystemState();
 		this.prevState = new ElevatorSystemState();

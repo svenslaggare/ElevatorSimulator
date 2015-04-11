@@ -13,7 +13,6 @@ public class Simulator {
 	private final SimulatorSettings settings;
 	private final SimulatorClock clock;
 	
-	private final long randSeed;
 	private Random random;
 	
 	private final SimulatorStats stats;
@@ -49,8 +48,7 @@ public class Simulator {
 			randSeed = System.currentTimeMillis();
 		}
 		
-		this.randSeed = randSeed;
-		this.random = new Random(this.randSeed);
+		this.random = new Random(randSeed);
 		
 		this.scenarioName = scenario.getName();
 		this.settings = settings;
@@ -132,12 +130,10 @@ public class Simulator {
 	 * @param line The line
 	 */
 	public void log(String line) {
-//		if (this.clock.timeNow() >= 57613720002750L - SimulatorClock.NANOSECONDS_PER_SECOND * 60 && this.clock.timeNow() <= 58961030003024L) {	
-			if (enableLog) {
-				double simulatedTime = (double)this.clock.elapsedSinceRealTime(0) / SimulatorClock.NANOSECONDS_PER_SECOND;
-				System.out.println(this.clock.formattedTime(simulatedTime) + ": " + line);
-			}
-//		}
+		if (enableLog) {
+			double simulatedTime = (double)this.clock.elapsedSinceRealTime(0) / SimulatorClock.NANOSECONDS_PER_SECOND;
+			System.out.println(this.clock.formattedTime(simulatedTime) + ": " + line);
+		}
 	}
 	
 	/**
@@ -266,6 +262,7 @@ public class Simulator {
 		this.building.reset();
 		this.clock.reset();
 		this.stats.reset();
+		this.run = false;
 	}
 	
 	/**
@@ -306,10 +303,7 @@ public class Simulator {
 		SchedulerCreator creator = new SchedulerCreator() {		
 			@Override
 			public SchedulingAlgorithm createScheduler(Building building) {
-//				return new LongestQueueFirst();
 				return new Zoning(building.getElevatorCars().length, building);
-//				return new ThreePassageGroupElevator(building);
-//				return new RoundRobin(building, false);
 			}
 		};
 				
