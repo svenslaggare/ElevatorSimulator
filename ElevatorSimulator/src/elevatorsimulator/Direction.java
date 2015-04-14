@@ -1,7 +1,7 @@
 package elevatorsimulator;
 /**
  * Represents the possible movement directions of an elevator car
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public enum Direction {

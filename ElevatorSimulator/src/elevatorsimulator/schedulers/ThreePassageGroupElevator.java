@@ -20,7 +20,7 @@ import elevatorsimulator.ElevatorCar.State;
 
 /**
  * Implements the 'Three passage group elevator' scheduling algorithm
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public class ThreePassageGroupElevator implements SchedulingAlgorithm {
@@ -29,7 +29,7 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 	
 	/**
 	 * The passage type
-	 * @author Anton Jansson
+	 * @author Anton Jansson and Kristoffer Uggla Lingvall
 	 *
 	 */
 	private static enum PassageType {
@@ -40,7 +40,7 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 	
 	/**
 	 * Represents a passenger call
-	 * @author Anton Jansson
+	 * @author Anton Jansson and Kristoffer Uggla Lingvall
 	 *
 	 */
 	private static class PassengerCall {
@@ -124,7 +124,7 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 	
 	/**
 	 * Represents a call tuple
-	 * @author Anton Jansson
+	 * @author Anton Jansson and Kristoffer Uggla Lingvall
 	 *
 	 */
 	private static class CallTuple {

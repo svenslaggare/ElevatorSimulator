@@ -29,7 +29,7 @@ import marl.utility.Rand;
 
 /**
  * Represents a simulator that uses reinforcement learning
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public class RLSimulator {	

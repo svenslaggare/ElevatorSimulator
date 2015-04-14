@@ -2,7 +2,7 @@ package elevatorsimulator;
 
 /**
  * Contains settings for the simulator
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public class SimulatorSettings {

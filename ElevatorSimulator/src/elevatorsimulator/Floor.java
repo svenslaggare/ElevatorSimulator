@@ -7,7 +7,7 @@ import elevatorsimulator.ElevatorCar.State;
 
 /**
  * Represents a floor in the building
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public class Floor {

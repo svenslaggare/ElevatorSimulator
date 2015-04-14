@@ -1,7 +1,7 @@
 package elevatorsimulator;
 /**
  * Represents a configuration for an elevator car
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public class ElevatorCarConfiguration {

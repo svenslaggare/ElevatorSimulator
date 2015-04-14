@@ -14,7 +14,7 @@ import elevatorsimulator.Simulator;
 
 /**
  * Implements the 'Zoning' scheduling algorithm
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public class Zoning implements SchedulingAlgorithm {
@@ -25,7 +25,7 @@ public class Zoning implements SchedulingAlgorithm {
 	
 	/**
 	 * Represents a zone
-	 * @author Anton Jansson
+	 * @author Anton Jansson and Kristoffer Uggla Lingvall
 	 *
 	 */
 	private static class Zone {

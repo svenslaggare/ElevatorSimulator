@@ -10,7 +10,7 @@ import elevatorsimulator.Simulator;
 
 /**
  * Represents a scheduler that uses Reinforcement learning
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public class ReinforcementLearning implements SchedulingAlgorithm {

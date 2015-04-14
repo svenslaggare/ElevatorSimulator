@@ -1,7 +1,7 @@
 package elevatorsimulator;
 /**
  * Represents a building
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public class Building {

@@ -1,7 +1,7 @@
 package elevatorsimulator;
 /**
  * Represents a clock for the simulator
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public class SimulatorClock {

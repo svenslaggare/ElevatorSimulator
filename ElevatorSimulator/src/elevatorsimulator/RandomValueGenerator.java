@@ -6,7 +6,7 @@ import java.util.Random;
 
 /**
  * Represents a random value generator
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  * @param <T> The type of the value to generate
  */
 public class RandomValueGenerator<T> {

@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * Contains stats about the simulator
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public class SimulatorStats {

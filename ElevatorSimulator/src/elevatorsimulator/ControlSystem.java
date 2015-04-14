@@ -4,7 +4,7 @@ import java.util.Queue;
 
 /**
  * Represents the control system for the elevator
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public class ControlSystem {

@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * Represents an elevator car
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public class ElevatorCar {
@@ -21,7 +21,7 @@ public class ElevatorCar {
 	
 	/**
 	 * The possible states the elevator can be in
-	 * @author Anton Jansson
+	 * @author Anton Jansson and Kristoffer Uggla Lingvall
 	 *
 	 */
 	public static enum State {

@@ -14,7 +14,7 @@ import elevatorsimulator.ElevatorCar.State;
 
 /**
  * Implements the 'RoundRobin' scheduling algorithm
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public class RoundRobin implements SchedulingAlgorithm {

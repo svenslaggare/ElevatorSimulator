@@ -2,7 +2,7 @@ package elevatorsimulator;
 
 /**
  * Represents a scenario
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public class Scenario {

@@ -3,7 +3,7 @@ import java.text.DecimalFormat;
 
 /**
  * Represents a passenger
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public class Passenger {

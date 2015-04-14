@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * Contains statistics information about an interval
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public class StatsInterval {

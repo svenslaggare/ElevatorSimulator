@@ -4,7 +4,7 @@ import elevatorsimulator.TrafficProfile.Interval;
 
 /**
  * Contains different traffic profiles
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public class TrafficProfiles {

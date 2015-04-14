@@ -8,7 +8,7 @@ import elevatorsimulator.TrafficProfile;
 
 /**
  * Unit test for the TrafficProfile class
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public class TestTrafficProfile {

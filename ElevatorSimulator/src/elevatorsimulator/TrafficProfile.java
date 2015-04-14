@@ -1,7 +1,7 @@
 package elevatorsimulator;
 /**
  * Represents a traffic profile
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public class TrafficProfile {
@@ -10,7 +10,7 @@ public class TrafficProfile {
 	
 	/**
 	 * Represents an interval
-	 * @author Anton Jansson
+	 * @author Anton Jansson and Kristoffer Uggla Lingvall
 	 *
 	 */
 	public static class Interval {

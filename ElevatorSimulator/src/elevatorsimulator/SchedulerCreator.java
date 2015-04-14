@@ -2,7 +2,7 @@ package elevatorsimulator;
 
 /**
  * Represents an interface for creating a scheduler
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public interface SchedulerCreator {

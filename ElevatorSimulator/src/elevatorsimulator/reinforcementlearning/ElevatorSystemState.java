@@ -8,7 +8,7 @@ import marl.environments.State;
 
 /**
  * Represents the state for the elevator system
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public class ElevatorSystemState implements State<ElevatorSystemState> {
@@ -24,7 +24,7 @@ public class ElevatorSystemState implements State<ElevatorSystemState> {
 	private final static Type STATE_TYPE = Type.TRAFFIC;
 	/**
 	 * The type of the state
-	 * @author Anton Jansson
+	 * @author Anton Jansson and Kristoffer Uggla Lingvall
 	 *
 	 */
 	public static enum Type {

@@ -10,7 +10,7 @@ import java.io.IOException;
 
 /**
  * Contains statistics related tools
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public class StatisticTools {

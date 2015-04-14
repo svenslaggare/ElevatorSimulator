@@ -10,7 +10,7 @@ import marl.utility.Config;
 
 /**
  * Represents an elevator system agent
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public class ElevatorSystemAgent extends Agent<ElevatorSystemEnvironment> {

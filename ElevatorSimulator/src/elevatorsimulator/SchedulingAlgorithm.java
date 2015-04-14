@@ -2,7 +2,7 @@ package elevatorsimulator;
 
 /**
  * Represents a scheduling algorithm
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public interface SchedulingAlgorithm {	

@@ -5,7 +5,7 @@ import elevatorsimulator.schedulers.*;
 
 /**
  * The main class for the simulator
- * @author Anton Jansson
+ * @author Anton Jansson and Kristoffer Uggla Lingvall
  *
  */
 public class Simulator {
