@@ -17,7 +17,7 @@ public class SimulatorRunner {
 	private final List<Scenario> scenarios;
 	private final List<SchedulerCreator> schedulerCreators;
 	
-	public final static int NUM_DATA_RUNS = 50;
+	public final static int NUM_DATA_RUNS = 1000;
 	public final static long DATA_RUN_SEED = 1337 * 4711;
 	
 	/**
@@ -81,9 +81,9 @@ public class SimulatorRunner {
 		List<Scenario> scenarios = new ArrayList<Scenario>();
 		
 		scenarios.add(Scenarios.createMediumBuilding(2));
-		scenarios.add(Scenarios.createMediumBuilding(3));
-		scenarios.add(Scenarios.createLargeBuilding(3));
-		scenarios.add(Scenarios.createLargeBuilding(4));
+//		scenarios.add(Scenarios.createMediumBuilding(3));
+//		scenarios.add(Scenarios.createLargeBuilding(3));
+//		scenarios.add(Scenarios.createLargeBuilding(4));
 		
 		List<SchedulerCreator> schedulerCreators = new ArrayList<SchedulerCreator>();
 		schedulerCreators.add(new SchedulerCreator() {		
