@@ -31,8 +31,6 @@ public class StatsInterval {
 	
 	private final int[] elevatorCarDistribution;
 	
-	private double standardDeviationASWT = 0.0;
-	
 	/**
 	 * Creates a new interval
 	 * @param startTime The start time of the interval
@@ -307,15 +305,6 @@ public class StatsInterval {
 			averageInterval.elevatorCarDistribution[i] = averageInterval.elevatorCarDistribution[i] / intervals.size();
 		}
 		
-		double aswtDiffSum = 0.0;
-		double aswt = averageInterval.averageSquaredWaitTime();
-		
-		for (StatsInterval interval : intervals) {
-			aswtDiffSum += Math.pow(interval.averageSquaredWaitTime() - aswt, 2);
-		}
-		
-		averageInterval.standardDeviationASWT = Math.sqrt((1.0 / intervals.size()) * aswtDiffSum);
-		
 		return averageInterval;
 	}
 	
@@ -367,7 +356,6 @@ public class StatsInterval {
 			writer.write("Number of up travels;");
 			writer.write("Number of down travels;");
 			writer.write("Number of interfloor travels;");
-			writer.write("Standard deviation ASWT;");		
 			
 			for (int i = 0; i < intervals.get(0).elevatorCarDistribution.length; i++) {
 				writer.write("Served passangers elevator " + i + ";");
@@ -386,7 +374,6 @@ public class StatsInterval {
 				writer.write(interval.getNumUp() + ";");
 				writer.write(interval.getNumDown() + ";");
 				writer.write(interval.getNumInterfloors() + ";");
-				writer.write(interval.standardDeviationASWT + ";");
 				
 				for (int served : interval.elevatorCarDistribution) {
 					writer.write(served + ";");
