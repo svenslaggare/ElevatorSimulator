@@ -21,7 +21,6 @@ import elevatorsimulator.ElevatorCar.State;
 /**
  * Implements the 'Three passage group elevator' scheduling algorithm
  * @author Anton Jansson and Kristoffer Uggla Lingvall
- *
  */
 public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 	private List<ElevatorData> elevators = new ArrayList<ElevatorData>();
@@ -237,6 +236,12 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 		}
 	}
 	
+	/**
+	 * Finds the car calls between the given floors
+	 * @param simulator The simulator
+	 * @param minFloor The min floor
+	 * @param maxFloor The max floor
+	 */
 	private Set<Passenger> getCarCalls(Simulator simulator, int minFloor, int maxFloor) {
 		Set<Passenger> carCalls = new HashSet<>();
 		
@@ -251,10 +256,15 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 		return carCalls;
 	}
 	
+	/**
+	 * Finds the hall calls between the given floors
+	 * @param simulator The simulator
+	 * @param minFloor The min floor
+	 * @param maxFloor The max floor
+	 */
 	private Set<Passenger> getHallCalls(Simulator simulator, int minFloor, int maxFloor) {
 		Set<Passenger> hallCalls = new HashSet<>();
 		
-		//TODO: Correct this
 		for (ElevatorData elevatorData : this.elevators) {
 			for (PassengerCall hallCall : elevatorData.hallCalls) {
 				Passenger passenger = hallCall.passenger;
@@ -432,10 +442,6 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 	
 	private double calculateTiAttending(Simulator simulator, ElevatorData elevatorData, Passenger passengerToHandle, PassageType callType) {
 		Direction elevatorDir = elevatorData.elevatorCar.getDirection();
-		
-//		if (elevatorDir == Direction.NONE) {
-//			elevatorDir = passengerToHandle.getDirection();
-//		}
 		
 		switch (callType) {
 		case P1:
@@ -1012,24 +1018,11 @@ public class ThreePassageGroupElevator implements SchedulingAlgorithm {
 			}
 		}
 		
-//		if (passenger.getId() == 1075) {
-//			System.out.println(
-//				"elevator #" + bestElevatorData.elevatorCar.getId()
-//				+ " floor: " + bestElevatorData.elevatorCar.getFloor()
-//				+ " hall: " + bestElevatorData.hallCalls.size()
-//				+ " car: " + bestElevatorData.carCalls
-//				+ " time: " + passenger.getTimeOfArrival());
-//		}
-		
 		bestElevatorData.hallCalls.add(new PassengerCall(bestType, passenger));
 	}
 	
 	@Override
-	public void passengerBoarded(Simulator simulator, ElevatorCar elevatorCar, Passenger passenger) {		
-//		if (passenger.getId() == 1075) {
-//			System.out.println("boarded at " + passenger.getTimeOfRideStarted() + " elevator: " +  elevatorCar.getId());
-//		}
-		
+	public void passengerBoarded(Simulator simulator, ElevatorCar elevatorCar, Passenger passenger) {				
 		CallTuple callData = this.findCall(passenger);
 		ElevatorData elevatorData = null;
 		

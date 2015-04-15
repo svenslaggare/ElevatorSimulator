@@ -63,38 +63,4 @@ public class Scenarios {
 			},
 			TrafficProfiles.WEEK_DAY_PROFILE);
 	}
-	
-	/**
-	 * Creates a large-sized building
-	 * @param numElevatorCars The number of elevator cars
-	 */
-	public static Scenario createLargeBuilding2(int numElevatorCars) {
-		return new Scenario(
-			"LargeBuilding2-" + numElevatorCars,
-			numElevatorCars,
-			ElevatorCarConfiguration.defaultConfiguration(),
-			new int[] {
-				0,
-				70,
-				70,
-				75,
-				85,
-				75,
-				80,
-				90,
-				90,
-				85,
-				75,
-				80,
-				75,
-				90,
-				70,
-				70,
-				70,
-				60,
-				50,
-				40
-			},
-			TrafficProfiles.WEEK_DAY_PROFILE);
-	}
 }

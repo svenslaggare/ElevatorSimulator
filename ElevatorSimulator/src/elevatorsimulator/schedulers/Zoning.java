@@ -110,13 +110,6 @@ public class Zoning implements SchedulingAlgorithm {
 	 * @param elevatorCar The elevator car
 	 */
 	private Zone getZone(ElevatorCar elevatorCar) {
-//		for (Zone zone : this.zones) {
-//			if (zone.elevatorCars.contains(elevatorCar)) {
-//				return zone;
-//			}
-//		}
-//		
-//		return null;
 		return this.elevatorToZone[elevatorCar.getId()];
 	}
 	
@@ -126,13 +119,6 @@ public class Zoning implements SchedulingAlgorithm {
 	 */
 	private Zone getZone(int floor) {
 		return this.floorToZone[floor];
-//		for (Zone zone : this.zones) {
-//			if (floor >= zone.bottomFloor() && floor <= zone.topFloor()) {
-//				return zone;
-//			}
-//		}
-//		
-//		return null;
 	}
 	
 	@Override
@@ -164,15 +150,7 @@ public class Zoning implements SchedulingAlgorithm {
 				if (elevator.getState() == State.MOVING) {
 					Direction dir = Direction.getDirection(passenger.getArrivalFloor(), passenger.getDestinationFloor());
 					
-					if (elevator.getDirection() == dir) {
-//						boolean correctFloor = false;
-//						
-//						if (elevator.getDirection() == Direction.UP) {
-//							correctFloor = elevator.getFloor() + 1 == passenger.getArrivalFloor();
-//						} else if (elevator.getDirection() == Direction.DOWN) {
-//							correctFloor = elevator.getFloor() - 1 == passenger.getArrivalFloor();
-//						}
-													
+					if (elevator.getDirection() == dir) {						
 						if (elevator.nextFloor() == passenger.getArrivalFloor()) {
 							elevator.stopElevatorAtNextFloor();
 							break;

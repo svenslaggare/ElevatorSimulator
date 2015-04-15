@@ -66,15 +66,7 @@ public class LongestQueueFirst implements SchedulingAlgorithm {
 					if (elevator.getState() == State.MOVING) {
 						Direction dir = Direction.getDirection(passenger.getArrivalFloor(), passenger.getDestinationFloor());
 	
-						if (elevator.getDirection() == dir) {
-//							boolean correctFloor = false;
-//							
-//							if (elevator.getDirection() == Direction.UP) {
-//								correctFloor = elevator.getFloor() + 1 == passenger.getArrivalFloor();
-//							} else if (elevator.getDirection() == Direction.DOWN) {
-//								correctFloor = elevator.getFloor() - 1 == passenger.getArrivalFloor();
-//							}
-														
+						if (elevator.getDirection() == dir) {						
 							if (elevator.nextFloor() == passenger.getArrivalFloor()) {
 								type = HandleType.STOP;
 								isCandidate = true;
@@ -114,7 +106,7 @@ public class LongestQueueFirst implements SchedulingAlgorithm {
 
 	@Override
 	public void onIdle(Simulator simulator, ElevatorCar elevatorCar) {
-		//elevatorCar.moveTowards(simulator, 0);
+
 	}
 	
 	@Override
