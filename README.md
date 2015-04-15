@@ -1,5 +1,5 @@
 # ElevatorSimulator
-Implements a simple elevator simulator with Reinforcement Learning. The reinforcement learning system is implemented using [YORLL](http://www.cs.york.ac.uk/rl/software.php) library.
+Implements a simple elevator simulator with Reinforcement Learning. The reinforcement learning system is implemented using the [YORLL](http://www.cs.york.ac.uk/rl/software.php) library.
 
 ## Scheduling algorithms
 The simulator implements the following algorithms:
@@ -8,4 +8,3 @@ The simulator implements the following algorithms:
 * Round Robin
 * Up-Peak Group Elevator
 * Three Passage Group Elevator
-* Reinforcement Learning
