@@ -46,10 +46,8 @@ public class RandomValueGenerator<T> {
 	public T randomValue() {
 		double randomValue = this.random.nextDouble();
 
-        for (ValueProbability<T> value : this.values)
-        {
-            if (randomValue < value.probability)
-            {
+        for (ValueProbability<T> value : this.values) {
+            if (randomValue < value.probability) {
                 return value.value;
             }
 
